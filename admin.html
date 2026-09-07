@@ -81,7 +81,11 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
     <span class="logo">IGCC</span>
     <span class="header-title">Configuration</span>
   </div>
-  <a class="back" href="index.html">← Back to Daily Report</a>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:11px;color:rgba(255,255,255,.7);font-family:var(--mono);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:6px;" id="signed-in-as"></span>
+    <a class="back" href="index.html">← Back to Daily Report</a>
+    <button class="back" style="cursor:pointer;" onclick="signOutAdmin()">Sign out</button>
+  </div>
 </div>
 
 <div class="container hidden" id="app-body">
@@ -166,7 +170,9 @@ function signInWithGoogle() {
 async function handleSession(session) {
   const { data: isAdmin, error } = await sb.rpc('check_admin');
   if (error || !isAdmin) {
-    document.getElementById('auth-error').classList.add('show');
+    const errEl = document.getElementById('auth-error');
+    errEl.textContent = `Access denied — ${session.user.email} isn't an admin. Contact mohammed.lateef@igccgroup-iq.com`;
+    errEl.classList.add('show');
     await sb.auth.signOut();
     document.getElementById('auth-screen').style.display = 'flex';
     return;
@@ -174,13 +180,23 @@ async function handleSession(session) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-header').classList.remove('hidden');
   document.getElementById('app-body').classList.remove('hidden');
+  document.getElementById('signed-in-as').textContent = session.user.email;
   loadAll();
+}
+
+async function signOutAdmin() {
+  await sb.auth.signOut();
+  location.reload();
 }
 
 sb.auth.onAuthStateChange((event, session) => {
   if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
     if (session) handleSession(session);
     else document.getElementById('auth-screen').style.display = 'flex';
+  }
+  if (event === 'SIGNED_OUT') {
+    document.getElementById('app-header').classList.add('hidden');
+    document.getElementById('app-body').classList.add('hidden');
   }
 });
 
