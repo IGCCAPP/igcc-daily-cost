@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IGCC — Configuration</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -59,6 +61,18 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
 .auth-error{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--danger);margin-top:16px;display:none;}
 .auth-error.show{display:block;}
 .hidden{display:none!important;}
+.section-sub{font-size:11px;}
+.hier-block{border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--surface2);}
+.hier-block-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;justify-content:between;gap:8px;}
+.hier-sub{margin-left:18px;margin-top:8px;border-left:2px solid var(--border);padding-left:14px;}
+/* Tom Select — searchable dropdowns everywhere, wrapping instead of truncating */
+.ts-wrapper{width:100%;}
+.ts-wrapper.single .ts-control{min-height:0!important;padding:6px 8px!important;border:1.5px solid var(--border)!important;border-radius:6px!important;background:#fff!important;}
+.ts-control{font-family:var(--sans)!important;font-size:12.5px!important;}
+.ts-wrapper.focus .ts-control{border-color:var(--blue)!important;box-shadow:0 0 0 3px rgba(2,132,199,.1)!important;}
+.ts-control > div, .ts-control .item, .ts-control input{white-space:normal!important;word-break:break-word!important;line-height:1.3!important;}
+.ts-dropdown{font-family:var(--sans)!important;font-size:12.5px!important;z-index:10050!important;}
+.ts-dropdown .option, .ts-dropdown .create{white-space:normal!important;word-break:break-word!important;line-height:1.35!important;padding:6px 10px!important;}
 </style>
 </head>
 <body>
@@ -90,21 +104,58 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
 
 <div class="container hidden" id="app-body">
 
-  <!-- CTRs -->
+  <!-- COST CENTERS -->
   <div class="section">
     <div class="section-header">
-      <div><div class="section-title">CTR Codes</div><div class="section-sub">Shared list — everyone sees these in the CTR # dropdown.</div></div>
+      <div><div class="section-title">Cost Centers</div><div class="section-sub">Shared, top level of the project hierarchy. Everyone picks one of these first in every dropdown.</div></div>
     </div>
     <table>
-      <thead><tr><th>ID</th><th>Name</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
-      <tbody id="ctrs-tbody"></tbody>
+      <thead><tr><th style="width:120px;">ID</th><th>Name</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <tbody id="cc-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1fr 2fr auto;">
-      <div><label class="field-label">ID</label><input type="text" id="new-ctr-id" class="mono-input" placeholder="CTR-004"></div>
-      <div><label class="field-label">Name</label><input type="text" id="new-ctr-name" placeholder="Package name"></div>
-      <button class="btn primary" onclick="addCtr()">+ Add</button>
+      <div><label class="field-label">ID</label><input type="text" id="new-cc-id" class="mono-input" placeholder="CC-01"></div>
+      <div><label class="field-label">Name</label><input type="text" id="new-cc-name" placeholder="e.g. BGC Package 1"></div>
+      <button class="btn primary" onclick="addCostCenter()">+ Add</button>
     </div>
-    <div class="status" id="ctrs-status"></div>
+    <div class="status" id="cc-status"></div>
+  </div>
+
+  <!-- PROJECT CATEGORIES -->
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Project Categories</div><div class="section-sub">Each category belongs to one Cost Center — only that Cost Center's categories will show up for someone using it.</div></div>
+    </div>
+    <table>
+      <thead><tr><th style="width:150px;">Cost Center</th><th style="width:120px;">ID</th><th>Name</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <tbody id="cat-tbody"></tbody>
+    </table>
+    <div class="add-row" style="grid-template-columns:1.4fr 1fr 2fr auto;">
+      <div><label class="field-label">Cost Center</label><select id="new-cat-cc"></select></div>
+      <div><label class="field-label">ID</label><input type="text" id="new-cat-id" class="mono-input" placeholder="CIVIL"></div>
+      <div><label class="field-label">Name</label><input type="text" id="new-cat-name" placeholder="e.g. Civil Works"></div>
+      <button class="btn primary" onclick="addProjectCategory()">+ Add</button>
+    </div>
+    <div class="status" id="cat-status"></div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Projects</div><div class="section-sub">Each project belongs to one Cost Center + Project Category. The Description here is what auto-fills "Project DESC" once someone picks this project.</div></div>
+    </div>
+    <table>
+      <thead><tr><th style="width:150px;">Cost Center</th><th style="width:150px;">Category</th><th style="width:120px;">ID</th><th>Description</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <tbody id="proj-tbody"></tbody>
+    </table>
+    <div class="add-row" style="grid-template-columns:1.2fr 1.2fr .8fr 2fr auto;">
+      <div><label class="field-label">Cost Center</label><select id="new-proj-cc" onchange="onNewProjCC()"></select></div>
+      <div><label class="field-label">Category</label><select id="new-proj-cat"></select></div>
+      <div><label class="field-label">ID</label><input type="text" id="new-proj-id" class="mono-input" placeholder="P-100"></div>
+      <div><label class="field-label">Description</label><input type="text" id="new-proj-desc" placeholder="e.g. Road grading phase 1"></div>
+      <button class="btn primary" onclick="addProject()">+ Add</button>
+    </div>
+    <div class="status" id="proj-status"></div>
   </div>
 
   <!-- Equipment types -->
@@ -208,42 +259,149 @@ function setStatus(id, text, cls) {
 }
 
 async function loadAll() {
-  await Promise.all([loadCtrs(), loadEquipmentTypes(), loadConfig(), loadAllowedUsers()]);
+  // Cost centers first (Project Categories/Projects pickers depend on it),
+  // then categories, then projects — each depends on the one before it.
+  await Promise.all([loadCostCenters(), loadEquipmentTypes(), loadConfig(), loadAllowedUsers()]);
+  await loadProjectCategories();
+  await loadProjects();
+  onNewProjCC(); // now that both cost centers and categories are loaded, fix up the cascading picker
 }
 
-// ---------- CTRs ----------
-async function loadCtrs() {
-  const { data, error } = await sb.from('ctrs').select('*').order('id');
-  if (error) { setStatus('ctrs-status', 'Load failed: ' + error.message, 'error'); return; }
-  document.getElementById('ctrs-tbody').innerHTML = data.map(c => `
+function enhanceSelect(el, opts) {
+  if (!el) return null;
+  if (el.tomselect) el.tomselect.destroy();
+  return new TomSelect(el, Object.assign({ maxOptions: 1000, allowEmptyOption: true }, opts||{}));
+}
+
+// ---------- Cost Centers ----------
+let costCenters = []; // cached for the Project Categories / Projects pickers below
+
+async function loadCostCenters() {
+  const { data, error } = await sb.from('cost_centers').select('*').order('id');
+  if (error) { setStatus('cc-status', 'Load failed: ' + error.message, 'error'); return; }
+  costCenters = data || [];
+  document.getElementById('cc-tbody').innerHTML = costCenters.map(c => `
     <tr>
       <td class="mono-input">${c.id}</td>
       <td>${c.name || ''}</td>
-      <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleCtr('${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
-      <td><button class="btn-remove" onclick="deleteCtr('${c.id}')">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">No CTRs yet</td></tr>';
+      <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleCostCenter('${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" onclick="deleteCostCenter('${c.id}')">×</button></td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">No cost centers yet — add one below</td></tr>';
+
+  // Refresh the Cost Center pickers used by Project Categories / Projects forms
+  const ccOpts = costCenters.filter(c=>c.active).map(c=>({value:c.id, text:c.id+(c.name?' — '+c.name:'')}));
+  enhanceSelect(document.getElementById('new-cat-cc'), { options: ccOpts, placeholder:'Select cost center...' });
+  enhanceSelect(document.getElementById('new-proj-cc'), { options: ccOpts, placeholder:'Select cost center...' });
+  document.getElementById('new-proj-cc').tomselect.on('change', onNewProjCC);
+  onNewProjCC();
 }
-async function addCtr() {
-  const id = document.getElementById('new-ctr-id').value.trim();
-  const name = document.getElementById('new-ctr-name').value.trim();
-  if (!id) { setStatus('ctrs-status', 'ID is required', 'error'); return; }
-  const { error } = await sb.from('ctrs').insert({ id, name });
-  if (error) { setStatus('ctrs-status', 'Failed: ' + error.message, 'error'); return; }
-  document.getElementById('new-ctr-id').value = '';
-  document.getElementById('new-ctr-name').value = '';
-  setStatus('ctrs-status', '✓ Added', 'saved');
-  loadCtrs();
+async function addCostCenter() {
+  const id = document.getElementById('new-cc-id').value.trim();
+  const name = document.getElementById('new-cc-name').value.trim();
+  if (!id) { setStatus('cc-status', 'ID is required', 'error'); return; }
+  const { error } = await sb.from('cost_centers').insert({ id, name });
+  if (error) { setStatus('cc-status', 'Failed: ' + error.message, 'error'); return; }
+  document.getElementById('new-cc-id').value = '';
+  document.getElementById('new-cc-name').value = '';
+  setStatus('cc-status', '✓ Added', 'saved');
+  loadCostCenters();
 }
-async function toggleCtr(id, active) {
-  const { error } = await sb.from('ctrs').update({ active }).eq('id', id);
-  if (error) { setStatus('ctrs-status', 'Failed: ' + error.message, 'error'); return; }
-  loadCtrs();
+async function toggleCostCenter(id, active) {
+  const { error } = await sb.from('cost_centers').update({ active }).eq('id', id);
+  if (error) { setStatus('cc-status', 'Failed: ' + error.message, 'error'); return; }
+  loadCostCenters();
 }
-async function deleteCtr(id) {
-  if (!confirm(`Delete CTR "${id}"? This can't be undone.`)) return;
-  const { error } = await sb.from('ctrs').delete().eq('id', id);
-  if (error) { setStatus('ctrs-status', 'Failed: ' + error.message, 'error'); return; }
-  loadCtrs();
+async function deleteCostCenter(id) {
+  if (!confirm(`Delete Cost Center "${id}"? This also removes every Project Category and Project under it. This can't be undone.`)) return;
+  const { error } = await sb.from('cost_centers').delete().eq('id', id);
+  if (error) { setStatus('cc-status', 'Failed: ' + error.message, 'error'); return; }
+  loadCostCenters(); loadProjectCategories(); loadProjects();
+}
+
+// ---------- Project Categories ----------
+let projectCategories = [];
+
+async function loadProjectCategories() {
+  const { data, error } = await sb.from('project_categories').select('*').order('cost_center_id').order('id');
+  if (error) { setStatus('cat-status', 'Load failed: ' + error.message, 'error'); return; }
+  projectCategories = data || [];
+  document.getElementById('cat-tbody').innerHTML = projectCategories.map(c => `
+    <tr>
+      <td class="mono-input">${c.cost_center_id}</td>
+      <td class="mono-input">${c.id}</td>
+      <td>${c.name || ''}</td>
+      <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleProjectCategory('${c.cost_center_id}','${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" onclick="deleteProjectCategory('${c.cost_center_id}','${c.id}')">×</button></td>
+    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;">No project categories yet — add a Cost Center above first</td></tr>';
+}
+async function addProjectCategory() {
+  const cc = document.getElementById('new-cat-cc').value;
+  const id = document.getElementById('new-cat-id').value.trim();
+  const name = document.getElementById('new-cat-name').value.trim();
+  if (!cc) { setStatus('cat-status', 'Pick a Cost Center first', 'error'); return; }
+  if (!id) { setStatus('cat-status', 'ID is required', 'error'); return; }
+  const { error } = await sb.from('project_categories').insert({ cost_center_id: cc, id, name });
+  if (error) { setStatus('cat-status', 'Failed: ' + error.message, 'error'); return; }
+  document.getElementById('new-cat-id').value = '';
+  document.getElementById('new-cat-name').value = '';
+  setStatus('cat-status', '✓ Added', 'saved');
+  loadProjectCategories();
+}
+async function toggleProjectCategory(cc, id, active) {
+  const { error } = await sb.from('project_categories').update({ active }).eq('cost_center_id', cc).eq('id', id);
+  if (error) { setStatus('cat-status', 'Failed: ' + error.message, 'error'); return; }
+  loadProjectCategories();
+}
+async function deleteProjectCategory(cc, id) {
+  if (!confirm(`Delete Project Category "${id}"? This also removes every Project under it. This can't be undone.`)) return;
+  const { error } = await sb.from('project_categories').delete().eq('cost_center_id', cc).eq('id', id);
+  if (error) { setStatus('cat-status', 'Failed: ' + error.message, 'error'); return; }
+  loadProjectCategories(); loadProjects();
+}
+
+// ---------- Projects ----------
+async function loadProjects() {
+  const { data, error } = await sb.from('projects').select('*').order('cost_center_id').order('category_id').order('id');
+  if (error) { setStatus('proj-status', 'Load failed: ' + error.message, 'error'); return; }
+  document.getElementById('proj-tbody').innerHTML = (data||[]).map(p => `
+    <tr>
+      <td class="mono-input">${p.cost_center_id}</td>
+      <td class="mono-input">${p.category_id}</td>
+      <td class="mono-input">${p.id}</td>
+      <td>${p.description || ''}</td>
+      <td><span class="toggle ${p.active?'on':'off'}" onclick="toggleProject('${p.cost_center_id}','${p.category_id}','${p.id}', ${!p.active})">${p.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" onclick="deleteProject('${p.cost_center_id}','${p.category_id}','${p.id}')">×</button></td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px;">No projects yet — add a Project Category above first</td></tr>';
+}
+function onNewProjCC() {
+  const cc = document.getElementById('new-proj-cc').value;
+  const opts = projectCategories.filter(c=>c.cost_center_id===cc && c.active).map(c=>({value:c.id, text:c.id+(c.name?' — '+c.name:'')}));
+  enhanceSelect(document.getElementById('new-proj-cat'), { options: opts, placeholder: cc ? 'Select category...' : 'Pick a cost center first' });
+}
+async function addProject() {
+  const cc  = document.getElementById('new-proj-cc').value;
+  const cat = document.getElementById('new-proj-cat').value;
+  const id  = document.getElementById('new-proj-id').value.trim();
+  const desc= document.getElementById('new-proj-desc').value.trim();
+  if (!cc || !cat) { setStatus('proj-status', 'Pick a Cost Center and Category first', 'error'); return; }
+  if (!id) { setStatus('proj-status', 'ID is required', 'error'); return; }
+  const { error } = await sb.from('projects').insert({ cost_center_id: cc, category_id: cat, id, description: desc });
+  if (error) { setStatus('proj-status', 'Failed: ' + error.message, 'error'); return; }
+  document.getElementById('new-proj-id').value = '';
+  document.getElementById('new-proj-desc').value = '';
+  setStatus('proj-status', '✓ Added', 'saved');
+  loadProjects();
+}
+async function toggleProject(cc, cat, id, active) {
+  const { error } = await sb.from('projects').update({ active }).eq('cost_center_id', cc).eq('category_id', cat).eq('id', id);
+  if (error) { setStatus('proj-status', 'Failed: ' + error.message, 'error'); return; }
+  loadProjects();
+}
+async function deleteProject(cc, cat, id) {
+  if (!confirm(`Delete Project "${id}"? This can't be undone.`)) return;
+  const { error } = await sb.from('projects').delete().eq('cost_center_id', cc).eq('category_id', cat).eq('id', id);
+  if (error) { setStatus('proj-status', 'Failed: ' + error.message, 'error'); return; }
+  loadProjects();
 }
 
 // ---------- Equipment types ----------
