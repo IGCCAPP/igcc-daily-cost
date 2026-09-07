@@ -270,7 +270,7 @@ async function loadAll() {
 function enhanceSelect(el, opts) {
   if (!el) return null;
   if (el.tomselect) el.tomselect.destroy();
-  return new TomSelect(el, Object.assign({ maxOptions: 1000, allowEmptyOption: true }, opts||{}));
+  return new TomSelect(el, Object.assign({ maxOptions: 1000, allowEmptyOption: true, dropdownParent: 'body' }, opts||{}));
 }
 
 // ---------- Cost Centers ----------
