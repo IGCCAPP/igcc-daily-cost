@@ -142,8 +142,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
   </div>
 </div>
 
-<!-- SIGN OUT BUTTON (shown when logged in) -->
+<!-- SIGN OUT / ADMIN BUTTONS (shown when logged in) -->
 <button class="btn-signout hidden" id="btn-signout" onclick="signOut()">Sign out</button>
+<a class="btn-signout hidden" id="btn-admin" href="admin.html" style="right:110px;text-decoration:none;">⚙ Configuration</a>
 
 <div class="header">
   <div style="display:flex;align-items:center;">
@@ -1204,6 +1205,10 @@ async function handleSession(session) {
     picture: user.user_metadata?.avatar_url,
   };
   currentProfileId = user.id;
+
+  const { data: isAdmin } = await sb.rpc('check_admin');
+  if (isAdmin) document.getElementById('btn-admin').classList.remove('hidden');
+
   showApp(currentUser);
 }
 
