@@ -292,8 +292,8 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
     <button class="btn-add" onclick="addBorderRow()">+ Add subcontractor entry</button>
   </div>
 
-  <!-- ══════ CONCRETE ══════ -->
-  <div class="section">
+  <!-- ══════ CONCRETE ══════ (Civil / Mechanical / Electrical only) -->
+  <div class="section" id="section-concrete">
     <div class="section-header">
       <div class="section-title">🧱 Concrete Tracking</div>
       <span class="cost-badge" id="conc-cost-badge">IQD 0</span>
@@ -314,8 +314,8 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
     <button class="btn-add" onclick="addConcRow()">+ Add concrete entry</button>
   </div>
 
-  <!-- ══════ SUB BASE ══════ -->
-  <div class="section">
+  <!-- ══════ SUB BASE ══════ (Civil / Mechanical / Electrical only) -->
+  <div class="section" id="section-subbase">
     <div class="section-header">
       <div class="section-title">🪨 Sub Base Tracking</div>
       <span class="cost-badge" id="sub-cost-badge">IQD 0</span>
@@ -572,6 +572,10 @@ async function loadMaster() {
 }
 
 // ── DEPT ──────────────────────────────────────────────────────────────────────
+// Concrete Tracking and Sub Base Tracking only apply to Civil / Mechanical /
+// Electrical work — HSE, Planning, and QA-QC never need them.
+const DEPTS_WITH_MATERIALS = ['Civil', 'Mechanical', 'Electrical'];
+
 function selectDept(el, dept) {
   currentDept = dept;
   document.querySelectorAll('.dept-tab').forEach(t=>t.classList.remove('active'));
@@ -579,6 +583,18 @@ function selectDept(el, dept) {
   document.getElementById('sum-dept').textContent = dept;
   empStatus = {};
   renderDept(dept);
+  updateMaterialsPanelsVisibility(dept);
+}
+
+function updateMaterialsPanelsVisibility(dept) {
+  const show = DEPTS_WITH_MATERIALS.includes(dept);
+  document.getElementById('section-concrete').classList.toggle('hidden', !show);
+  document.getElementById('section-subbase').classList.toggle('hidden', !show);
+  if (!show) {
+    // Clear out any rows so nothing hidden still gets submitted.
+    [...concRowIds].forEach(rid => removeRow('conc', rid));
+    [...subRowIds].forEach(rid => removeRow('sub', rid));
+  }
 }
 
 function renderDept(dept) {
