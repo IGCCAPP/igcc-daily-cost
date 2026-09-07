@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IGCC — Daily Cost Input</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -27,7 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .dept-tab{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;background:#fff;}
 .dept-tab:hover{border-color:var(--blue);color:var(--blue);}
 .dept-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-.container{max-width:1100px;margin:0 auto;padding:20px 20px 80px;}
+.container{max-width:1200px;margin:0 auto;padding:20px 20px 80px;}
 .section{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--shadow);}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--bg);}
 .section-title{font-size:13px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:8px;}
@@ -48,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .emp-id{font-family:var(--mono);font-size:11px;color:var(--muted);}
 
 /* STATUS BTNS */
-.s-btns{display:flex;gap:4px;}
+.s-btns{display:flex;gap:4px;flex-wrap:wrap;}
 .s-btn{padding:4px 9px;border-radius:5px;border:1.5px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--sans);background:#fff;color:var(--muted);white-space:nowrap;}
 .s-btn.present{background:rgba(22,163,74,.1);border-color:var(--success);color:var(--success);}
 .s-btn.absent{background:rgba(220,38,38,.1);border-color:var(--danger);color:var(--danger);}
@@ -90,12 +92,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
 .c-btn:hover{border-color:var(--blue);color:var(--blue);}
 .border-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
 
-/* CTR INLINE */
-.ctr-sel{min-width:100px;font-size:12px;padding:5px 7px;}
-
-/* PROCURE UPDATE */
-.update-po-box{background:rgba(217,119,6,.05);border:1.5px solid rgba(217,119,6,.2);border-radius:8px;padding:12px;margin-top:10px;}
-.update-po-grid{display:grid;grid-template-columns:2fr 2fr auto;gap:10px;align-items:end;}
+/* PROJECT FIELDS (Cost Center -> Project Category -> Project -> Project DESC) */
+.proj-fields{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;min-width:420px;}
+.proj-fields .pf-label{font-size:9px;font-weight:600;color:var(--label);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;display:block;}
+.proj-fields input[readonly]{background:var(--surface2);color:var(--muted);font-size:11px;cursor:default;}
+@media(max-width:1000px){.proj-fields{grid-template-columns:1fr 1fr;min-width:260px;}}
 
 /* CREDIT NOTE TABLE */
 .credit-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
@@ -125,6 +126,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
 .signed-in-as{font-size:11px;color:var(--muted);font-family:var(--mono);background:#fff;padding:6px 10px;border:1px solid var(--border);border-radius:6px;}
 .btn-signout{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:12px;padding:6px 12px;}
 .btn-signout:hover{border-color:var(--danger);color:var(--danger);}
+
+/* TOM SELECT — searchable dropdowns everywhere, wrapping instead of truncating */
+.ts-wrapper{width:100%;}
+.ts-wrapper.single .ts-control{min-height:0!important;padding:6px 8px!important;border:1.5px solid var(--border)!important;border-radius:6px!important;background:#fff!important;}
+.ts-control{font-family:var(--sans)!important;font-size:12.5px!important;}
+.ts-wrapper.focus .ts-control{border-color:var(--blue)!important;box-shadow:0 0 0 3px rgba(2,132,199,.1)!important;}
+.ts-control > div, .ts-control .item, .ts-control input{white-space:normal!important;word-break:break-word!important;line-height:1.3!important;}
+.ts-dropdown{font-family:var(--sans)!important;font-size:12.5px!important;z-index:10050!important;}
+.ts-dropdown .option, .ts-dropdown .create{white-space:normal!important;word-break:break-word!important;line-height:1.35!important;padding:6px 10px!important;}
+select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12px!important;}
+
 @media(max-width:700px){.summary-bar{grid-template-columns:1fr 1fr;}.add-emp-grid{grid-template-columns:1fr 1fr;}.border-row{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -198,10 +210,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
     </div>
   </div>
 
-  <!-- ══════ MANPOWER ══════ -->
+  <!-- ══════ IGCC STAFF ATTENDANCE ══════ -->
   <div class="section">
     <div class="section-header">
-      <div class="section-title">👷 Manpower Attendance</div>
+      <div class="section-title">👷 IGCC Staff Attendance</div>
       <div style="display:flex;gap:10px;align-items:center;">
         <span id="present-count" style="font-size:12px;color:var(--muted);font-family:var(--mono);">0 present</span>
         <span class="cost-badge" id="mp-cost-badge">IQD 0</span>
@@ -213,7 +225,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
           <th style="width:32px;">#</th>
           <th>Employee</th>
           <th>Position</th>
-          <th style="width:130px;">CTR #</th>
+          <th style="min-width:420px;">Cost Center → Category → Project → DESC *</th>
           <th>Daily Rate</th>
           <th style="min-width:200px;">Status</th>
           <th style="text-align:right;">Cost</th>
@@ -231,21 +243,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
       <div class="add-emp-grid">
         <div><label class="field-label">Employee ID</label><input type="text" id="new-emp-id" placeholder="IG0000" class="mono-input"></div>
         <div><label class="field-label">Full Name</label><input type="text" id="new-emp-name" placeholder="Full name"></div>
-        <div><label class="field-label">Position</label>
-          <select id="new-emp-pos">
-            <option value="">Select...</option>
-            <option>Project Manager</option><option>Civil Engineer</option><option>Senior Civil Engineer</option>
-            <option>Mechanical Engineer</option><option>Electrical Engineer</option><option>Instrument Engineer</option>
-            <option>HSE Manager</option><option>HSE Officer</option><option>QA/QC Manager</option><option>QC Inspector</option>
-            <option>Planner</option><option>Cost Control Engineer</option><option>Surveyor</option>
-            <option>Civil Supervisor</option><option>Civil Foreman</option><option>Mechanical Supervisor</option>
-            <option>Electrical Supervisor</option><option>Civil Technician</option><option>Welder</option>
-            <option>Pipefitter</option><option>Electrician</option><option>Carpenter</option><option>Mason</option>
-            <option>Painter</option><option>Rigger</option><option>Scaffolder</option><option>Laborer</option>
-            <option>Driver</option><option>Crane Operator</option><option>Equipment Operator</option>
-            <option>PA (Permit Applicant)</option><option>Store Keeper</option><option>Administrator</option>
-          </select>
-        </div>
+        <div><label class="field-label">Position</label><select id="new-emp-pos"></select></div>
         <div><label class="field-label">Daily Rate</label>
           <div style="display:grid;grid-template-columns:1fr auto;gap:6px;">
             <input type="number" id="new-emp-rate" placeholder="0">
@@ -271,7 +269,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
         <thead><tr>
           <th>Equipment Type</th>
           <th>Description / Plate No.</th>
-          <th style="width:130px;">CTR #</th>
+          <th style="min-width:420px;">Cost Center → Category → Project → DESC *</th>
           <th style="width:80px;">Qty</th>
           <th style="width:70px;">Unit</th>
           <th style="width:120px;">Rate (IQD)</th>
@@ -284,14 +282,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
     <button class="btn-add" onclick="addEqRow()">+ Add equipment</button>
   </div>
 
-  <!-- ══════ BORDER WORKERS ══════ -->
+  <!-- ══════ SUBCONTRACTOR STAFF ══════ -->
   <div class="section">
     <div class="section-header">
-      <div class="section-title">🏗 Border Workers</div>
+      <div class="section-title">🏗 Subcontractor Staff</div>
       <span class="cost-badge" id="brd-cost-badge">IQD 0</span>
     </div>
     <div id="border-rows"></div>
-    <button class="btn-add" onclick="addBorderRow()">+ Add border entry</button>
+    <button class="btn-add" onclick="addBorderRow()">+ Add subcontractor entry</button>
   </div>
 
   <!-- ══════ CONCRETE ══════ -->
@@ -306,7 +304,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
           <th>Concrete Type</th>
           <th>QTY (m³)</th>
           <th>Unit Price (IQD)</th>
-          <th style="width:130px;">CTR #</th>
+          <th style="min-width:420px;">Cost Center → Category → Project → DESC</th>
           <th style="text-align:right;">Total</th>
           <th style="width:32px;"></th>
         </tr></thead>
@@ -328,7 +326,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
           <th>Material Description</th>
           <th>QTY (ton)</th>
           <th>Unit Price (IQD)</th>
-          <th style="width:130px;">CTR #</th>
+          <th style="min-width:420px;">Cost Center → Category → Project → DESC</th>
           <th style="text-align:right;">Total</th>
           <th style="width:32px;"></th>
         </tr></thead>
@@ -347,54 +345,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
     <div style="overflow-x:auto;">
       <table class="grid-table">
         <thead><tr>
-          <th>Receiving Date</th>
-          <th>Item Name</th>
-          <th>ROP #</th>
-          <th>PO #</th>
-          <th>PO Amount (IQD)</th>
-          <th style="width:130px;">CTR #</th>
-          <th>Notes</th>
+          <th style="width:150px;">Receiving Date</th>
+          <th style="min-width:220px;">Item Name</th>
+          <th style="min-width:420px;">Cost Center → Category → Project → DESC</th>
           <th style="width:32px;"></th>
         </tr></thead>
         <tbody id="proc-tbody"></tbody>
       </table>
     </div>
     <button class="btn-add" onclick="addProcRow()">+ Add procurement entry</button>
-
-    <!-- UPDATE PO AMOUNT -->
-    <div class="update-po-box" style="margin-top:12px;">
-      <div style="font-size:12px;font-weight:600;color:var(--warning);margin-bottom:10px;">🔄 Add / Update PO Numbers for existing ROP</div>
-
-      <!-- Step 1: Search by ROP -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:end;margin-bottom:10px;">
-        <div><label class="field-label">ROP # to search</label>
-          <input type="text" id="search-rop" placeholder="e.g. ROP-2024-001" class="mono-input"></div>
-        <button class="btn-sm btn-sm-primary" style="height:38px;margin-top:18px;" onclick="searchByROP()">Search</button>
-      </div>
-      <div id="rop-search-status" style="font-size:12px;font-family:var(--mono);margin-bottom:8px;"></div>
-
-      <!-- Step 2: ROP info + PO list (shown after search) -->
-      <div id="rop-po-panel" style="display:none;">
-        <div id="rop-info" style="background:rgba(2,132,199,.06);border:1px solid rgba(2,132,199,.2);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12px;"></div>
-
-        <!-- Existing POs -->
-        <div style="font-size:11px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">PO Numbers linked to this ROP</div>
-        <div id="existing-po-list" style="margin-bottom:10px;"></div>
-
-        <!-- Add new PO -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;">
-          <div style="font-size:11px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Add New PO</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;">
-            <div><label class="field-label">PO #</label>
-              <input type="text" id="new-po-number" placeholder="PO-XXXX" class="mono-input"></div>
-            <div><label class="field-label">PO Amount (IQD)</label>
-              <input type="number" id="new-po-amount" placeholder="0"></div>
-            <button class="btn-sm btn-sm-primary" style="height:38px;margin-top:18px;" onclick="addPOtoROP()">+ Add PO</button>
-          </div>
-        </div>
-        <div id="update-po-status" style="font-size:12px;font-family:var(--mono);"></div>
-      </div>
-    </div>
   </div>
 
   <!-- ══════ CREDIT NOTES ══════ -->
@@ -440,7 +399,10 @@ let currentDept = 'Civil';
 let employees   = {};
 let equipment   = [];
 let borderRates = { pa:35000, worker:30000 };
-let ctrList     = [];
+let costCenters = [];   // {id,name}
+let projectCategories = []; // {id,cost_center_id,name}
+let projectsList = [];  // {id,cost_center_id,category_id,description}
+let itemHistory  = [];  // past procurement item names, for autocomplete
 let assetList   = [];
 let empStatus   = {};
 let eqRowIds    = [];
@@ -450,27 +412,131 @@ let subRowIds   = [];
 let procRowIds  = [];
 let creditItems = [];
 
+const POSITIONS = ['Project Manager','Civil Engineer','Senior Civil Engineer','Mechanical Engineer','Electrical Engineer',
+  'Instrument Engineer','HSE Manager','HSE Officer','QA/QC Manager','QC Inspector','Planner','Cost Control Engineer',
+  'Surveyor','Civil Supervisor','Civil Foreman','Mechanical Supervisor','Electrical Supervisor','Civil Technician',
+  'Welder','Pipefitter','Electrician','Carpenter','Mason','Painter','Rigger','Scaffolder','Laborer','Driver',
+  'Crane Operator','Equipment Operator','PA (Permit Applicant)','Store Keeper','Administrator'];
+
 const today  = new Date();
 const pad    = n => String(n).padStart(2,'0');
 const dateStr= `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
 document.getElementById('inp-date').value = dateStr;
 document.getElementById('date-badge').textContent = today.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 
+// ── SEARCHABLE DROPDOWNS (Tom Select) ───────────────────────────────────────
+// Every <select> in the app is enhanced into a searchable, text-wrapping
+// dropdown via Tom Select — this one helper is used everywhere so there's a
+// single place to keep the behavior consistent.
+const tsRegistry = {}; // id -> TomSelect instance (for the small number of persistent selects)
+
+function enhanceSelect(el, opts) {
+  if (!el) return null;
+  if (el.tomselect) { el.tomselect.destroy(); }
+  return new TomSelect(el, Object.assign({
+    maxOptions: 1000,
+    allowEmptyOption: true,
+  }, opts||{}));
+}
+
+// ── PROJECT FIELDS (Cost Center → Project Category → Project → Project DESC) ──
+// One reusable component used by every panel. `prefix` is a unique string per
+// row; the 4 controls get ids `${prefix}-cc`, `-cat`, `-proj`, `-desc`.
+const projTS = {}; // prefix -> {cc, cat, proj}
+
+function projFieldsHTML(prefix) {
+  return `
+    <div class="proj-fields">
+      <div><span class="pf-label">Cost Center</span><select id="${prefix}-cc"></select></div>
+      <div><span class="pf-label">Project Category</span><select id="${prefix}-cat"></select></div>
+      <div><span class="pf-label">Project</span><select id="${prefix}-proj"></select></div>
+      <div><span class="pf-label">Project DESC</span><input type="text" id="${prefix}-desc" readonly tabindex="-1" placeholder="—"></div>
+    </div>`;
+}
+
+function initProjFields(prefix, onChange) {
+  const ccEl = document.getElementById(prefix+'-cc');
+  const catEl= document.getElementById(prefix+'-cat');
+  const projEl=document.getElementById(prefix+'-proj');
+  if (!ccEl || !catEl || !projEl) return;
+
+  const ccTom = new TomSelect(ccEl, {
+    options: costCenters.map(c=>({value:c.id, text:c.id+(c.name?' — '+c.name:'')})),
+    placeholder:'Select...', allowEmptyOption:true, maxOptions:1000,
+  });
+  const catTom = new TomSelect(catEl, { options: [], placeholder:'Select cost center first', allowEmptyOption:true, maxOptions:1000 });
+  const projTom= new TomSelect(projEl,{ options: [], placeholder:'Select category first', allowEmptyOption:true, maxOptions:1000 });
+
+  ccTom.on('change', function(v){
+    catTom.clear(true); catTom.clearOptions();
+    projTom.clear(true); projTom.clearOptions();
+    const descEl = document.getElementById(prefix+'-desc'); if (descEl) descEl.value='';
+    projectCategories.filter(c=>c.cost_center_id===v).forEach(c=>{
+      catTom.addOption({value:c.id, text:c.id+(c.name?' — '+c.name:'')});
+    });
+    catTom.refreshOptions(false);
+    if (onChange) onChange();
+  });
+  catTom.on('change', function(v){
+    projTom.clear(true); projTom.clearOptions();
+    const descEl = document.getElementById(prefix+'-desc'); if (descEl) descEl.value='';
+    const cc = ccTom.getValue();
+    projectsList.filter(p=>p.cost_center_id===cc && p.category_id===v).forEach(p=>{
+      projTom.addOption({value:p.id, text:p.id+(p.description?' — '+p.description:'')});
+    });
+    projTom.refreshOptions(false);
+    if (onChange) onChange();
+  });
+  projTom.on('change', function(v){
+    const cc = ccTom.getValue(), cat = catTom.getValue();
+    const p = projectsList.find(p=>p.cost_center_id===cc && p.category_id===cat && p.id===v);
+    const descEl = document.getElementById(prefix+'-desc');
+    if (descEl) descEl.value = p ? (p.description||'') : '';
+    if (onChange) onChange();
+  });
+
+  projTS[prefix] = { cc: ccTom, cat: catTom, proj: projTom };
+}
+
+function getProjFieldsValue(prefix) {
+  return {
+    cost_center:      document.getElementById(prefix+'-cc')?.value || '',
+    project_category: document.getElementById(prefix+'-cat')?.value || '',
+    project:          document.getElementById(prefix+'-proj')?.value || '',
+    project_desc:     document.getElementById(prefix+'-desc')?.value || '',
+  };
+}
+
+function projFieldsComplete(prefix) {
+  const v = getProjFieldsValue(prefix);
+  return !!(v.cost_center && v.project_category && v.project);
+}
+
+function destroyProjFields(prefix) {
+  const t = projTS[prefix];
+  if (t) { try{t.cc.destroy();}catch(e){} try{t.cat.destroy();}catch(e){} try{t.proj.destroy();}catch(e){} delete projTS[prefix]; }
+}
+
 // ── LOAD MASTER ───────────────────────────────────────────────────────────────
 async function loadMaster() {
   try {
-    const [ctrRes, empRes, eqRes, assetRes, cfgRes] = await Promise.all([
-      sb.from('ctrs').select('id,name').eq('active', true).order('id'),
+    const [ccRes, catRes, projRes, empRes, eqRes, assetRes, cfgRes, itemRes] = await Promise.all([
+      sb.from('cost_centers').select('id,name').eq('active', true).order('id'),
+      sb.from('project_categories').select('id,cost_center_id,name').eq('active', true).order('id'),
+      sb.from('projects').select('id,cost_center_id,category_id,description').eq('active', true).order('id'),
       sb.from('employees').select('*').eq('active', true),
       sb.from('equipment_types').select('*').eq('active', true).order('type'),
       sb.from('assets').select('*').eq('active', true).order('name'),
       sb.from('app_config').select('key,value'),
+      sb.from('report_procurement').select('item').not('item','is',null).limit(1000),
     ]);
-    if (ctrRes.error || empRes.error || eqRes.error || assetRes.error || cfgRes.error) {
-      throw ctrRes.error || empRes.error || eqRes.error || assetRes.error || cfgRes.error;
+    if (ccRes.error || catRes.error || projRes.error || empRes.error || eqRes.error || assetRes.error || cfgRes.error) {
+      throw ccRes.error || catRes.error || projRes.error || empRes.error || eqRes.error || assetRes.error || cfgRes.error;
     }
 
-    ctrList = ctrRes.data.map(c => ({ id: c.id, name: c.name }));
+    costCenters = ccRes.data.map(c => ({ id: c.id, name: c.name }));
+    projectCategories = catRes.data.map(c => ({ id: c.id, cost_center_id: c.cost_center_id, name: c.name }));
+    projectsList = (projRes.data||[]).map(p => ({ id: p.id, cost_center_id: p.cost_center_id, category_id: p.category_id, description: p.description }));
 
     employees = {};
     empRes.data.forEach(e => {
@@ -481,55 +547,27 @@ async function loadMaster() {
     equipment = eqRes.data.map(e => ({ type: e.type, unitRate: Number(e.unit_rate), unit: e.unit }));
     assetList = assetRes.data.map(a => ({ name: a.name, price: Number(a.price) }));
 
+    if (!itemRes.error && itemRes.data) {
+      itemHistory = [...new Set(itemRes.data.map(r=>r.item).filter(Boolean))].sort();
+    }
+
     const cfg = {};
     cfgRes.data.forEach(row => { cfg[row.key] = row.value; });
     if (cfg.border_rates)     borderRates = cfg.border_rates;
     if (cfg.default_usd_rate) document.getElementById('usd-rate').value = cfg.default_usd_rate;
 
-    console.log('Master data loaded from Supabase:', ctrList.length, 'CTRs,', empRes.data.length, 'employees');
+    console.log('Master data loaded from Supabase:', costCenters.length, 'cost centers,', empRes.data.length, 'employees');
   } catch(e) {
-    console.error('Master data load failed, using built-in defaults:', e);
-    useDemoData();
+    console.error('Master data load failed:', e);
+    alert('Could not load master data (Cost Centers / Categories / Projects / employees). Check your connection and reload.\n\n' + (e.message||e));
   }
+
+  const posSel = document.getElementById('new-emp-pos');
+  posSel.innerHTML = '<option value="">Select...</option>' + POSITIONS.map(p=>`<option>${p}</option>`).join('');
+  enhanceSelect(posSel, { placeholder:'Select position...' });
 
   renderDept(currentDept);
   renderCreditRows();
-}
-
-function useDemoData() {
-  ctrList = [{id:'CTR-001',name:'BGC Package 1'},{id:'CTR-002',name:'BGC Package 2'},{id:'CTR-003',name:'General'}];
-  employees = {
-    Civil:[
-      {id:'IG0420',name:'علي صبار حسين',position:'Civil Technician',dailyRate:1833,currency:'USD'},
-      {id:'IG0891',name:'كاظم علي نعمة',position:'PA (Permit Applicant)',dailyRate:35000,currency:'IQD'},
-      {id:'IG5809',name:'حسين علي جاسم',position:'Civil Engineer',dailyRate:2500,currency:'USD'},
-    ],
-    Mechanical:[{id:'IG1001',name:'Ahmed Kareem',position:'Mechanical Engineer',dailyRate:2000,currency:'USD'}],
-    Electrical:[{id:'IG2001',name:'Omar Saleh',position:'Electrical Engineer',dailyRate:2200,currency:'USD'}],
-    HSE:[{id:'IG3001',name:'Ali Kareem',position:'HSE Manager',dailyRate:2500,currency:'USD'}],
-    QAQC:[{id:'IG4001',name:'Tariq Fadhel',position:'QA/QC Manager',dailyRate:2200,currency:'USD'}],
-    Planning:[{id:'IG5001',name:'Mohammed Latteef',position:'Cost Control Lead',dailyRate:3000,currency:'USD'}],
-  };
-  equipment=[
-    {type:'Excavator',unitRate:250000,unit:'day'},{type:'Crane',unitRate:350000,unit:'day'},
-    {type:'Loader',unitRate:180000,unit:'day'},{type:'Truck',unitRate:120000,unit:'day'},
-    {type:'Generator',unitRate:80000,unit:'day'},{type:'Water Tanker',unitRate:90000,unit:'day'},
-    {type:'Man Lift',unitRate:200000,unit:'day'},{type:'Forklift',unitRate:130000,unit:'day'},
-  ];
-  assetList=[
-    {name:'Safety Helmet',price:15000},{name:'Safety Vest',price:8000},{name:'Safety Boots',price:35000},
-    {name:'Gloves (pair)',price:3000},{name:'Harness',price:45000},{name:'Goggles',price:5000},
-  ];
-}
-
-// ── CTR SELECT HTML ───────────────────────────────────────────────────────────
-function ctrSelectHTML(id,extraClass='') {
-  const opts = ctrList.map(c=>`<option value="${c.id}">${c.id}${c.name?' — '+c.name:''}</option>`).join('');
-  return `<select id="${id}" class="ctr-sel ${extraClass}" required
-    onchange="this.style.borderColor=this.value?'var(--success)':'var(--danger)';recalcAll()"
-    style="border-color:var(--danger);">
-    <option value="">CTR # *</option>${opts}
-  </select>`;
 }
 
 // ── DEPT ──────────────────────────────────────────────────────────────────────
@@ -543,6 +581,7 @@ function selectDept(el, dept) {
 }
 
 function renderDept(dept) {
+  Object.keys(employees).forEach(d => (employees[d]||[]).forEach(e => destroyProjFields('emp-'+e.id)));
   const list  = employees[dept]||[];
   const tbody = document.getElementById('emp-tbody');
   if (!list.length) {
@@ -555,7 +594,7 @@ function renderDept(dept) {
       <td style="color:var(--muted);font-family:var(--mono);font-size:11px;">${i+1}</td>
       <td><div class="emp-name">${e.name}</div><div class="emp-id">${e.id}</div></td>
       <td style="font-size:12px;color:var(--muted);">${e.position}</td>
-      <td>${ctrSelectHTML('ctr-emp-'+e.id)}</td>
+      <td>${projFieldsHTML('emp-'+e.id)}</td>
       <td style="font-family:var(--mono);font-size:12px;">${e.currency==='USD'?'$'+e.dailyRate.toLocaleString():fmt(e.dailyRate)}</td>
       <td><div class="s-btns">
         <button class="s-btn" id="s-${e.id}-present" onclick="setStatus('${e.id}','present',${rateIQD})">✓ Present</button>
@@ -567,6 +606,7 @@ function renderDept(dept) {
       <td><button class="btn-remove" onclick="removeEmpRow('${e.id}')">×</button></td>
     </tr>`;
   }).join('');
+  list.forEach(e => initProjFields('emp-'+e.id));
   calcMP();
 }
 
@@ -582,6 +622,7 @@ function setStatus(id, status, rateIQD) {
 }
 
 function removeEmpRow(id) {
+  destroyProjFields('emp-'+id);
   document.getElementById(`er-${id}`)?.remove();
   delete empStatus[id];
   calcMP();
@@ -639,15 +680,17 @@ function addEqRow() {
   const opts=equipment.map(e=>`<option value="${e.unitRate}" data-unit="${e.unit}">${e.type}</option>`).join('');
   const tr=document.createElement('tr'); tr.id=`eq-${rid}`;
   tr.innerHTML=`
-    <td><select onchange="onEqType(this,${rid})"><option value="">Select...</option>${opts}<option value="custom">Custom...</option></select></td>
+    <td><select id="eq-type-${rid}" onchange="onEqType(this,${rid})"><option value="">Select...</option>${opts}<option value="custom">Custom...</option></select></td>
     <td><input type="text" placeholder="Description / Plate No." id="eq-desc-${rid}"></td>
-    <td>${ctrSelectHTML('eq-ctr-'+rid)}</td>
+    <td>${projFieldsHTML('eq-'+rid)}</td>
     <td><input type="number" id="eq-qty-${rid}" min="0" step="0.5" placeholder="1" onchange="calcEQ()"></td>
     <td><input type="text" id="eq-unit-${rid}" placeholder="day" style="width:60px;"></td>
     <td><input type="number" id="eq-rate-${rid}" placeholder="0" onchange="calcEQ()"></td>
     <td><div class="cost-cell" id="eq-cost-${rid}">—</div></td>
     <td><button class="btn-remove" onclick="removeRow('eq',${rid})">×</button></td>`;
   document.getElementById('eq-tbody').appendChild(tr);
+  enhanceSelect(document.getElementById(`eq-type-${rid}`), { placeholder:'Select equipment...' });
+  initProjFields('eq-'+rid, calcEQ);
 }
 
 function onEqType(sel,rid) {
@@ -676,7 +719,7 @@ function calcEQ() {
   calcTotal();
 }
 
-// ── BORDER WORKERS ────────────────────────────────────────────────────────────
+// ── SUBCONTRACTOR STAFF ───────────────────────────────────────────────────────
 function addBorderRow() {
   const rid=Date.now(); brdRowIds.push(rid);
   const container=document.getElementById('border-rows');
@@ -685,20 +728,16 @@ function addBorderRow() {
   div.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;';
   div.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:600;color:var(--label);">Border Entry</div>
+      <div style="font-size:12px;font-weight:600;color:var(--label);">Subcontractor Entry</div>
       <button class="btn-remove" onclick="removeRow('brd',${rid})">× Remove</button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px;">
       <div>
         <label class="field-label">Type</label>
         <select id="brd-type-${rid}" onchange="calcBorder()">
           <option value="pa">PA (Permit Applicant)</option>
           <option value="worker">Worker (عامل)</option>
         </select>
-      </div>
-      <div>
-        <label class="field-label">CTR #</label>
-        ${ctrSelectHTML('brd-ctr-'+rid)}
       </div>
       <div>
         <label class="field-label">Count</label>
@@ -708,12 +747,12 @@ function addBorderRow() {
         <label class="field-label">Rate / Day (IQD)</label>
         <input type="number" id="brd-rate-${rid}" value="${borderRates.pa}" onchange="calcBorder()">
       </div>
-      <div>
-        <label class="field-label">Total</label>
-        <div class="cost-cell" id="brd-cost-${rid}" style="padding:8px 0;">—</div>
-      </div>
-    </div>`;
+    </div>
+    ${projFieldsHTML('brd-'+rid)}
+    <div style="margin-top:8px;"><label class="field-label">Total</label><div class="cost-cell" id="brd-cost-${rid}" style="padding:4px 0;">—</div></div>`;
   container.appendChild(div);
+  enhanceSelect(document.getElementById(`brd-type-${rid}`));
+  initProjFields('brd-'+rid, calcBorder);
   // Auto-fill rate on type change
   document.getElementById(`brd-type-${rid}`).addEventListener('change', function(){
     document.getElementById(`brd-rate-${rid}`).value=this.value==='pa'?borderRates.pa:borderRates.worker;
@@ -744,10 +783,11 @@ function addConcRow() {
     <td><input type="text" id="conc-type-${rid}" placeholder="e.g. C25, C30, Ready Mix"></td>
     <td><input type="number" id="conc-qty-${rid}" min="0" step="0.5" placeholder="m³" onchange="calcConc()"></td>
     <td><input type="number" id="conc-price-${rid}" placeholder="IQD/m³" onchange="calcConc()"></td>
-    <td>${ctrSelectHTML('conc-ctr-'+rid)}</td>
+    <td>${projFieldsHTML('conc-'+rid)}</td>
     <td><div class="cost-cell" id="conc-total-${rid}">—</div></td>
     <td><button class="btn-remove" onclick="removeRow('conc',${rid})">×</button></td>`;
   document.getElementById('conc-tbody').appendChild(tr);
+  initProjFields('conc-'+rid);
 }
 
 function calcConc() {
@@ -772,10 +812,11 @@ function addSubRow() {
     <td><input type="text" id="sub-desc-${rid}" placeholder="Material description"></td>
     <td><input type="number" id="sub-qty-${rid}" min="0" step="0.5" placeholder="ton" onchange="calcSub()"></td>
     <td><input type="number" id="sub-price-${rid}" placeholder="IQD/ton" onchange="calcSub()"></td>
-    <td>${ctrSelectHTML('sub-ctr-'+rid)}</td>
+    <td>${projFieldsHTML('sub-'+rid)}</td>
     <td><div class="cost-cell" id="sub-total-${rid}">—</div></td>
     <td><button class="btn-remove" onclick="removeRow('sub',${rid})">×</button></td>`;
   document.getElementById('sub-tbody').appendChild(tr);
+  initProjFields('sub-'+rid);
 }
 
 function calcSub() {
@@ -792,128 +833,25 @@ function calcSub() {
   calcTotal();
 }
 
-// ── PROCUREMENT ───────────────────────────────────────────────────────────────
+// ── PROCUREMENT (redesigned: Receiving Date, Item Name, project fields only) ──
 function addProcRow() {
   const rid=Date.now(); procRowIds.push(rid);
   const tr=document.createElement('tr'); tr.id=`proc-${rid}`;
   tr.innerHTML=`
     <td><input type="date" id="proc-date-${rid}" value="${dateStr}"></td>
-    <td><input type="text" id="proc-item-${rid}" placeholder="Item name"></td>
-    <td><input type="text" id="proc-rop-${rid}" placeholder="ROP-XXXX" class="mono-input"></td>
-    <td><input type="text" id="proc-pono-${rid}" placeholder="PO-XXXX" class="mono-input"></td>
-    <td><input type="number" id="proc-po-${rid}" placeholder="Leave blank if unknown"></td>
-    <td>${ctrSelectHTML('proc-ctr-'+rid)}</td>
-    <td><input type="text" id="proc-notes-${rid}" placeholder="Notes..."></td>
+    <td><select id="proc-item-${rid}"></select></td>
+    <td>${projFieldsHTML('proc-'+rid)}</td>
     <td><button class="btn-remove" onclick="removeRow('proc',${rid})">×</button></td>`;
   document.getElementById('proc-tbody').appendChild(tr);
-}
-
-// ── ROP SEARCH & PO MANAGEMENT ───────────────────────────────────────────────
-let currentROP = null;
-let currentROPData = null;
-
-async function searchByROP() {
-  const rop    = document.getElementById('search-rop').value.trim();
-  const status = document.getElementById('rop-search-status');
-  if (!rop) { status.textContent='⚠ Enter a ROP number'; status.style.color='var(--warning)'; return; }
-
-  status.textContent='⟳ Searching...'; status.style.color='var(--muted)';
-
-  try {
-    const { data, error } = await sb.from('procurement').select('*').ilike('rop', rop).order('created_at');
-    if (error) throw error;
-
-    if (data && data.length > 0) {
-      currentROP     = rop;
-      currentROPData = data;
-      status.textContent = '✓ Found ' + data.length + ' record(s) for ' + rop;
-      status.style.color = 'var(--success)';
-      renderROPPanel(data, rop);
-    } else {
-      status.textContent = '✗ No records found for ROP: "' + rop + '" — check spelling';
-      status.style.color = 'var(--danger)';
-      document.getElementById('rop-po-panel').style.display = 'none';
-    }
-  } catch(e) {
-    console.error('ROP search error:', e);
-    status.textContent = '✗ Search failed: ' + e.message;
-    status.style.color = 'var(--danger)';
-  }
-}
-
-function renderROPPanel(records, rop) {
-  const panel = document.getElementById('rop-po-panel');
-  panel.style.display = 'block';
-
-  // ROP info
-  const first = records[0];
-  document.getElementById('rop-info').innerHTML =
-    `<strong>ROP #:</strong> ${rop} &nbsp;|&nbsp; <strong>Item:</strong> ${first.item||'—'} &nbsp;|&nbsp; <strong>CTR:</strong> ${first.ctr||'—'} &nbsp;|&nbsp; <strong>Received:</strong> ${first.rec_date||'—'}`;
-
-  // Existing POs
-  const poList = document.getElementById('existing-po-list');
-  const pos    = records.filter(r => r.po_no);
-  if (!pos.length) {
-    poList.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0;">No PO numbers linked yet</div>';
-  } else {
-    poList.innerHTML = pos.map((r,i) => `
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center;padding:6px 8px;background:${i%2===0?'var(--surface2)':'#fff'};border-radius:4px;margin-bottom:4px;">
-        <div style="font-family:var(--mono);font-size:12px;font-weight:600;">${r.po_no}</div>
-        <div style="font-family:var(--mono);font-size:12px;">${r.po_amount?'IQD '+parseFloat(r.po_amount).toLocaleString():'<span style="color:var(--warning);">Amount pending</span>'}</div>
-        <div style="font-size:11px;color:var(--muted);"></div>
-        <button class="btn-sm" style="padding:3px 8px;font-size:11px;background:rgba(217,119,6,.1);border-color:var(--warning);color:var(--warning);"
-          onclick="editPOAmount('${r.id}', '${r.po_no}')">Edit</button>
-      </div>`).join('');
-  }
-
-  // Clear add form
-  document.getElementById('new-po-number').value = '';
-  document.getElementById('new-po-amount').value = '';
-}
-
-async function addPOtoROP() {
-  const pono   = document.getElementById('new-po-number').value.trim();
-  const amount = parseFloat(document.getElementById('new-po-amount').value)||0;
-  const status = document.getElementById('update-po-status');
-  if (!currentROP)    { status.textContent='⚠ Search for a ROP first'; status.style.color='var(--warning)'; return; }
-  if (!pono)          { status.textContent='⚠ Enter a PO number'; status.style.color='var(--warning)'; return; }
-
-  status.textContent='⟳ Saving...'; status.style.color='var(--muted)';
-
-  // Carry forward the item/CTR/receiving date from the ROP's first record so
-  // this new PO line stays identifiable even without re-typing everything.
-  const base = (currentROPData && currentROPData[0]) || {};
-  const { error } = await sb.from('procurement').insert({
-    rop: currentROP, po_no: pono, po_amount: amount,
-    item: base.item || null, ctr: base.ctr || null, rec_date: base.rec_date || null,
+  // Item Name: searchable + lets the user type a brand-new item (autocompletes from history)
+  enhanceSelect(document.getElementById(`proc-item-${rid}`), {
+    options: itemHistory.map(i=>({value:i,text:i})),
+    create: true,
+    persist: false,
+    placeholder: 'Type or pick an item...',
+    createOnBlur: true,
   });
-
-  if (error) {
-    status.textContent = '✗ Save failed: ' + error.message;
-    status.style.color = 'var(--danger)';
-    return;
-  }
-  status.textContent=`✓ PO ${pono} added to ROP ${currentROP}`;
-  status.style.color='var(--success)';
-  await searchByROP();
-}
-
-async function editPOAmount(id, pono) {
-  const newAmount = prompt(`Enter new PO amount for ${pono} (IQD):`, '');
-  if (newAmount===null||newAmount==='') return;
-  const status = document.getElementById('update-po-status');
-  status.textContent='⟳ Updating...'; status.style.color='var(--muted)';
-
-  const { error } = await sb.from('procurement').update({ po_amount: parseFloat(newAmount)||0 }).eq('id', id);
-
-  if (error) {
-    status.textContent = '✗ Update failed: ' + error.message;
-    status.style.color = 'var(--danger)';
-    return;
-  }
-  status.textContent=`✓ ${pono} updated to IQD ${parseFloat(newAmount).toLocaleString()}`;
-  status.style.color='var(--success)';
-  await searchByROP();
+  initProjFields('proc-'+rid);
 }
 
 // ── CREDIT NOTES ──────────────────────────────────────────────────────────────
@@ -996,6 +934,7 @@ function calcTotal() {
 function recalcAll() { calcMP(); calcEQ(); calcBorder(); calcConc(); calcSub(); calcCredit(); }
 
 function removeRow(type, rid) {
+  destroyProjFields(`${type}-${rid}`);
   document.getElementById(`${type}-${rid}`)?.remove();
   if(type==='eq') eqRowIds=eqRowIds.filter(r=>r!==rid);
   else if(type==='brd') brdRowIds=brdRowIds.filter(r=>r!==rid);
@@ -1019,102 +958,113 @@ async function submitDaily() {
   const dept   =currentDept;
   if(!date){alert('Please select a date');return;}
 
-  // Validate CTR# is selected for all active employees
+  // Validate the Cost Center / Category / Project trio is fully selected for
+  // every active employee — same "mandatory" rule the old CTR # field had.
   const deptEmpsCheck = employees[dept]||[];
-  const missingCTR = [];
+  const missingProj = [];
   deptEmpsCheck.forEach(e=>{
     const st  = empStatus[e.id]?.status;
     if (!st || st==='not-submitted') return; // skip unset
-    const ctr = document.getElementById('ctr-emp-'+e.id)?.value||'';
-    if (!ctr) missingCTR.push(e.name + ' (' + e.id + ')');
+    if (!projFieldsComplete('emp-'+e.id)) missingProj.push(e.name + ' (' + e.id + ')');
   });
-  if (missingCTR.length > 0) {
-    alert('CTR # is mandatory for all employees.\n\nMissing CTR for:\n' + missingCTR.join('\n'));
+  if (missingProj.length > 0) {
+    alert('Cost Center / Project Category / Project are mandatory for all employees.\n\nMissing for:\n' + missingProj.join('\n'));
     return;
   }
 
-  // Validate CTR for equipment rows
-  const missingEqCTR = [];
+  // Validate project fields for equipment rows
+  const missingEqProj = [];
   eqRowIds.forEach(rid=>{
-    const ctr = document.getElementById('eq-ctr-'+rid)?.value||'';
     const qty = parseFloat(document.getElementById('eq-qty-'+rid)?.value)||0;
     const rate= parseFloat(document.getElementById('eq-rate-'+rid)?.value)||0;
-    if (qty>0 && rate>0 && !ctr) {
-      const type = document.querySelector('#eq-'+rid+' select')?.options[document.querySelector('#eq-'+rid+' select')?.selectedIndex]?.text||'Row '+(eqRowIds.indexOf(rid)+1);
-      missingEqCTR.push(type);
+    if (qty>0 && rate>0 && !projFieldsComplete('eq-'+rid)) {
+      const sel = document.getElementById('eq-type-'+rid);
+      missingEqProj.push(sel?.options[sel.selectedIndex]?.text || 'Row '+(eqRowIds.indexOf(rid)+1));
     }
   });
-  if (missingEqCTR.length > 0) {
-    alert('CTR # is mandatory for all equipment.\n\nMissing CTR for:\n' + missingEqCTR.join('\n'));
+  if (missingEqProj.length > 0) {
+    alert('Cost Center / Project Category / Project are mandatory for all equipment.\n\nMissing for:\n' + missingEqProj.join('\n'));
     return;
   }
 
-  // Validate CTR for border rows
-  const missingBrdCTR = [];
+  // Validate project fields for subcontractor (border) rows
+  const missingBrdProj = [];
   brdRowIds.forEach(rid=>{
-    const ctr   = document.getElementById('brd-ctr-'+rid)?.value||'';
     const count = parseFloat(document.getElementById('brd-count-'+rid)?.value)||0;
-    if (count>0 && !ctr) missingBrdCTR.push('Border entry row '+(brdRowIds.indexOf(rid)+1));
+    if (count>0 && !projFieldsComplete('brd-'+rid)) missingBrdProj.push('Subcontractor entry row '+(brdRowIds.indexOf(rid)+1));
   });
-  if (missingBrdCTR.length > 0) {
-    alert('CTR # is mandatory for all border worker entries.\n\nMissing CTR for:\n' + missingBrdCTR.join('\n'));
+  if (missingBrdProj.length > 0) {
+    alert('Cost Center / Project Category / Project are mandatory for all subcontractor staff entries.\n\nMissing for:\n' + missingBrdProj.join('\n'));
     return;
   }
 
   // Attendance
   const deptEmps=employees[dept]||[];
-  const attendance=deptEmps.map(e=>({
-    id:e.id, name:e.name, position:e.position,
-    ctr: document.getElementById(`ctr-emp-${e.id}`)?.value||'',
-    status: empStatus[e.id]?.status||'not-submitted',
-    cost:   empStatus[e.id]?.cost||0,
-    dailyRate:e.dailyRate, currency:e.currency,
-  }));
+  const attendance=deptEmps.map(e=>{
+    const pf = getProjFieldsValue('emp-'+e.id);
+    return {
+      id:e.id, name:e.name, position:e.position, ...pf,
+      status: empStatus[e.id]?.status||'not-submitted',
+      cost:   empStatus[e.id]?.cost||0,
+      dailyRate:e.dailyRate, currency:e.currency,
+    };
+  });
 
   // Equipment
-  const eqData=eqRowIds.map(rid=>({
-    type: document.querySelector(`#eq-${rid} select`)?.options[document.querySelector(`#eq-${rid} select`)?.selectedIndex]?.text||'',
-    desc: document.getElementById(`eq-desc-${rid}`)?.value||'',
-    ctr:  document.getElementById(`eq-ctr-${rid}`)?.value||'',
-    qty:  parseFloat(document.getElementById(`eq-qty-${rid}`)?.value)||0,
-    unit: document.getElementById(`eq-unit-${rid}`)?.value||'',
-    rate: parseFloat(document.getElementById(`eq-rate-${rid}`)?.value)||0,
-  })).filter(e=>e.qty>0&&e.rate>0);
+  const eqData=eqRowIds.map(rid=>{
+    const sel = document.getElementById(`eq-type-${rid}`);
+    const pf  = getProjFieldsValue('eq-'+rid);
+    return {
+      type: sel?.options[sel.selectedIndex]?.text||'',
+      desc: document.getElementById(`eq-desc-${rid}`)?.value||'',
+      ...pf,
+      qty:  parseFloat(document.getElementById(`eq-qty-${rid}`)?.value)||0,
+      unit: document.getElementById(`eq-unit-${rid}`)?.value||'',
+      rate: parseFloat(document.getElementById(`eq-rate-${rid}`)?.value)||0,
+    };
+  }).filter(e=>e.qty>0&&e.rate>0);
 
-  // Border
-  const borderData=brdRowIds.map(rid=>({
-    type:  document.getElementById(`brd-type-${rid}`)?.value||'',
-    ctr:   document.getElementById(`brd-ctr-${rid}`)?.value||'',
-    count: parseFloat(document.getElementById(`brd-count-${rid}`)?.value)||0,
-    rate:  parseFloat(document.getElementById(`brd-rate-${rid}`)?.value)||0,
-  })).filter(b=>b.count>0);
+  // Subcontractor / border
+  const borderData=brdRowIds.map(rid=>{
+    const pf = getProjFieldsValue('brd-'+rid);
+    return {
+      type:  document.getElementById(`brd-type-${rid}`)?.value||'', ...pf,
+      count: parseFloat(document.getElementById(`brd-count-${rid}`)?.value)||0,
+      rate:  parseFloat(document.getElementById(`brd-rate-${rid}`)?.value)||0,
+    };
+  }).filter(b=>b.count>0);
 
   // Concrete
-  const concData=concRowIds.map(rid=>({
-    type:  document.getElementById(`conc-type-${rid}`)?.value||'',
-    qty:   parseFloat(document.getElementById(`conc-qty-${rid}`)?.value)||0,
-    price: parseFloat(document.getElementById(`conc-price-${rid}`)?.value)||0,
-    ctr:   document.getElementById(`conc-ctr-${rid}`)?.value||'',
-  })).filter(c=>c.qty>0);
+  const concData=concRowIds.map(rid=>{
+    const pf = getProjFieldsValue('conc-'+rid);
+    return {
+      type:  document.getElementById(`conc-type-${rid}`)?.value||'',
+      qty:   parseFloat(document.getElementById(`conc-qty-${rid}`)?.value)||0,
+      price: parseFloat(document.getElementById(`conc-price-${rid}`)?.value)||0,
+      ...pf,
+    };
+  }).filter(c=>c.qty>0);
 
   // Sub base
-  const subData=subRowIds.map(rid=>({
-    desc:  document.getElementById(`sub-desc-${rid}`)?.value||'',
-    qty:   parseFloat(document.getElementById(`sub-qty-${rid}`)?.value)||0,
-    price: parseFloat(document.getElementById(`sub-price-${rid}`)?.value)||0,
-    ctr:   document.getElementById(`sub-ctr-${rid}`)?.value||'',
-  })).filter(s=>s.qty>0);
+  const subData=subRowIds.map(rid=>{
+    const pf = getProjFieldsValue('sub-'+rid);
+    return {
+      desc:  document.getElementById(`sub-desc-${rid}`)?.value||'',
+      qty:   parseFloat(document.getElementById(`sub-qty-${rid}`)?.value)||0,
+      price: parseFloat(document.getElementById(`sub-price-${rid}`)?.value)||0,
+      ...pf,
+    };
+  }).filter(s=>s.qty>0);
 
   // Procurement
-  const procData=procRowIds.map(rid=>({
-    recDate: document.getElementById(`proc-date-${rid}`)?.value||'',
-    item:    document.getElementById(`proc-item-${rid}`)?.value||'',
-    rop:     document.getElementById(`proc-rop-${rid}`)?.value||'',
-    pono:    document.getElementById(`proc-pono-${rid}`)?.value||'',
-    poAmt:   parseFloat(document.getElementById(`proc-po-${rid}`)?.value)||0,
-    ctr:     document.getElementById(`proc-ctr-${rid}`)?.value||'',
-    notes:   document.getElementById(`proc-notes-${rid}`)?.value||'',
-  })).filter(p=>p.item);
+  const procData=procRowIds.map(rid=>{
+    const pf = getProjFieldsValue('proc-'+rid);
+    return {
+      recDate: document.getElementById(`proc-date-${rid}`)?.value||'',
+      item:    document.getElementById(`proc-item-${rid}`)?.value||'',
+      ...pf,
+    };
+  }).filter(p=>p.item);
 
   // Credit notes
   const creditData=creditItems.filter(a=>!a._removed).map((a,i)=>({
@@ -1141,25 +1091,34 @@ async function submitDaily() {
     // insert nothing (Supabase no-ops on an empty array).
     const inserts = [];
     if (attendance.length) inserts.push(sb.from('report_attendance').insert(
-      attendance.map(a => ({ report_id: reportId, employee_id: a.id, name: a.name, position: a.position, ctr: a.ctr, status: a.status, cost: a.cost, daily_rate: a.dailyRate, currency: a.currency }))
+      attendance.map(a => ({ report_id: reportId, employee_id: a.id, name: a.name, position: a.position,
+        cost_center: a.cost_center, project_category: a.project_category, project: a.project, project_desc: a.project_desc,
+        status: a.status, cost: a.cost, daily_rate: a.dailyRate, currency: a.currency }))
     ));
     if (eqData.length) inserts.push(sb.from('report_equipment').insert(
-      eqData.map(e => ({ report_id: reportId, type: e.type, description: e.desc, ctr: e.ctr, qty: e.qty, unit: e.unit, rate: e.rate }))
+      eqData.map(e => ({ report_id: reportId, type: e.type, description: e.desc,
+        cost_center: e.cost_center, project_category: e.project_category, project: e.project, project_desc: e.project_desc,
+        qty: e.qty, unit: e.unit, rate: e.rate }))
     ));
     if (borderData.length) inserts.push(sb.from('report_border').insert(
-      borderData.map(b => ({ report_id: reportId, type: b.type, ctr: b.ctr, count: b.count, rate: b.rate }))
+      borderData.map(b => ({ report_id: reportId, type: b.type,
+        cost_center: b.cost_center, project_category: b.project_category, project: b.project, project_desc: b.project_desc,
+        count: b.count, rate: b.rate }))
     ));
     if (concData.length) inserts.push(sb.from('report_concrete').insert(
-      concData.map(c => ({ report_id: reportId, type: c.type, qty: c.qty, price: c.price, ctr: c.ctr }))
+      concData.map(c => ({ report_id: reportId, type: c.type, qty: c.qty, price: c.price,
+        cost_center: c.cost_center, project_category: c.project_category, project: c.project, project_desc: c.project_desc }))
     ));
     if (subData.length) inserts.push(sb.from('report_subbase').insert(
-      subData.map(s => ({ report_id: reportId, description: s.desc, qty: s.qty, price: s.price, ctr: s.ctr }))
+      subData.map(s => ({ report_id: reportId, description: s.desc, qty: s.qty, price: s.price,
+        cost_center: s.cost_center, project_category: s.project_category, project: s.project, project_desc: s.project_desc }))
     ));
     if (creditData.length) inserts.push(sb.from('report_credit_notes').insert(
       creditData.map(c => ({ report_id: reportId, asset_name: c.name, price: c.price, qty: c.qty }))
     ));
-    if (procData.length) inserts.push(sb.from('procurement').insert(
-      procData.map(p => ({ report_id: reportId, rec_date: p.recDate || null, item: p.item, rop: p.rop, po_no: p.pono || null, po_amount: p.poAmt || null, ctr: p.ctr, notes: p.notes }))
+    if (procData.length) inserts.push(sb.from('report_procurement').insert(
+      procData.map(p => ({ report_id: reportId, rec_date: p.recDate || null, item: p.item,
+        cost_center: p.cost_center, project_category: p.project_category, project: p.project, project_desc: p.project_desc }))
     ));
 
     const results = await Promise.all(inserts);
