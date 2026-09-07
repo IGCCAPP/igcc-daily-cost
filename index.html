@@ -121,7 +121,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
 .auth-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;}
 .auth-name{font-size:13px;font-weight:600;color:var(--text);}
 .auth-email{font-size:11px;color:var(--muted);font-family:var(--mono);}
-.btn-signout{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:12px;padding:6px 12px;position:absolute;top:14px;right:24px;}
+.topright-bar{position:absolute;top:14px;right:24px;z-index:10001;display:flex;align-items:center;gap:10px;}
+.signed-in-as{font-size:11px;color:var(--muted);font-family:var(--mono);background:#fff;padding:6px 10px;border:1px solid var(--border);border-radius:6px;}
+.btn-signout{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:12px;padding:6px 12px;}
 .btn-signout:hover{border-color:var(--danger);color:var(--danger);}
 @media(max-width:700px){.summary-bar{grid-template-columns:1fr 1fr;}.add-emp-grid{grid-template-columns:1fr 1fr;}.border-row{grid-template-columns:1fr;}}
 </style>
@@ -142,9 +144,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
   </div>
 </div>
 
-<!-- SIGN OUT / ADMIN BUTTONS (shown when logged in) -->
-<button class="btn-signout hidden" id="btn-signout" onclick="signOut()">Sign out</button>
-<a class="btn-signout hidden" id="btn-admin" href="admin.html" style="right:110px;text-decoration:none;">⚙ Configuration</a>
+<!-- SIGNED-IN-AS / ADMIN / SIGN OUT (shown when logged in) -->
+<div class="topright-bar hidden" id="topright-bar">
+  <span class="signed-in-as" id="signed-in-as"></span>
+  <a class="btn-signout hidden" id="btn-admin" href="admin.html" style="text-decoration:none;">⚙ Configuration</a>
+  <button class="btn-signout" id="btn-signout" onclick="signOut()">Sign out</button>
+</div>
 
 <div class="header">
   <div style="display:flex;align-items:center;">
@@ -1214,7 +1219,8 @@ async function handleSession(session) {
 
 function showApp(user) {
   document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('btn-signout').classList.remove('hidden');
+  document.getElementById('topright-bar').classList.remove('hidden');
+  document.getElementById('signed-in-as').textContent = user.email;
   document.getElementById('inp-by').value = user.name || '';
   loadMaster();
 }
@@ -1234,7 +1240,8 @@ sb.auth.onAuthStateChange((event, session) => {
   }
   if (event === 'SIGNED_OUT') {
     document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('btn-signout').classList.add('hidden');
+    document.getElementById('topright-bar').classList.add('hidden');
+    document.getElementById('btn-admin').classList.add('hidden');
   }
 });
 </script>
