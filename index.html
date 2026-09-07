@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .dept-tab{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;background:#fff;}
 .dept-tab:hover{border-color:var(--blue);color:var(--blue);}
 .dept-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-.container{max-width:1200px;margin:0 auto;padding:20px 20px 80px;}
+.container{max-width:1680px;margin:0 auto;padding:20px 20px 80px;}
 .section{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--shadow);}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--bg);}
 .section-title{font-size:13px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:8px;}
@@ -93,10 +93,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
 .border-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
 
 /* PROJECT FIELDS (Cost Center -> Project Category -> Project -> Project DESC) */
-.proj-fields{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;min-width:420px;}
-.proj-fields .pf-label{font-size:9px;font-weight:600;color:var(--label);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;display:block;}
-.proj-fields input[readonly]{background:var(--surface2);color:var(--muted);font-size:11px;cursor:default;}
-@media(max-width:1000px){.proj-fields{grid-template-columns:1fr 1fr;min-width:260px;}}
+.proj-fields{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;min-width:640px;}
+.proj-fields .pf-label{font-size:10px;font-weight:600;color:var(--label);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px;display:block;}
+.proj-fields input[readonly]{background:var(--surface2);color:var(--muted);font-size:12px;cursor:default;}
+@media(max-width:1000px){.proj-fields{grid-template-columns:1fr 1fr;min-width:320px;}}
 
 /* CREDIT NOTE TABLE */
 .credit-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
@@ -225,7 +225,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
           <th style="width:32px;">#</th>
           <th>Employee</th>
           <th>Position</th>
-          <th style="min-width:420px;">Cost Center → Category → Project → DESC *</th>
+          <th style="min-width:660px;">Cost Center → Category → Project → DESC *</th>
           <th>Daily Rate</th>
           <th style="min-width:200px;">Status</th>
           <th style="text-align:right;">Cost</th>
@@ -269,7 +269,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
         <thead><tr>
           <th>Equipment Type</th>
           <th>Description / Plate No.</th>
-          <th style="min-width:420px;">Cost Center → Category → Project → DESC *</th>
+          <th style="min-width:660px;">Cost Center → Category → Project → DESC *</th>
           <th style="width:80px;">Qty</th>
           <th style="width:70px;">Unit</th>
           <th style="width:120px;">Rate (IQD)</th>
@@ -304,7 +304,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
           <th>Concrete Type</th>
           <th>QTY (m³)</th>
           <th>Unit Price (IQD)</th>
-          <th style="min-width:420px;">Cost Center → Category → Project → DESC</th>
+          <th style="min-width:660px;">Cost Center → Category → Project → DESC</th>
           <th style="text-align:right;">Total</th>
           <th style="width:32px;"></th>
         </tr></thead>
@@ -326,7 +326,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
           <th>Material Description</th>
           <th>QTY (ton)</th>
           <th>Unit Price (IQD)</th>
-          <th style="min-width:420px;">Cost Center → Category → Project → DESC</th>
+          <th style="min-width:660px;">Cost Center → Category → Project → DESC</th>
           <th style="text-align:right;">Total</th>
           <th style="width:32px;"></th>
         </tr></thead>
@@ -347,7 +347,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
         <thead><tr>
           <th style="width:150px;">Receiving Date</th>
           <th style="min-width:220px;">Item Name</th>
-          <th style="min-width:420px;">Cost Center → Category → Project → DESC</th>
+          <th style="min-width:660px;">Cost Center → Category → Project → DESC</th>
           <th style="width:32px;"></th>
         </tr></thead>
         <tbody id="proc-tbody"></tbody>
