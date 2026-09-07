@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGCC — Configuration</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;--border:#dde3ed;
+  --accent:#0f172a;--blue:#0284c7;--blue-dim:rgba(2,132,199,.08);
+  --success:#16a34a;--danger:#dc2626;--warning:#d97706;
+  --text:#0f172a;--muted:#64748b;--label:#475569;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 12px rgba(0,0,0,.1);
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;}
+.header{background:var(--accent);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-md);}
+.logo{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:6px;}
+.header-title{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);margin-left:12px;}
+.header a.back{color:#fff;opacity:.85;font-size:13px;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.4);border-radius:6px;}
+.header a.back:hover{opacity:1;background:rgba(255,255,255,.1);}
+.container{max-width:1000px;margin:0 auto;padding:20px 20px 80px;}
+.section{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:16px;box-shadow:var(--shadow);}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--bg);}
+.section-title{font-size:13px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.07em;}
+.section-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:11px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:.05em;padding:7px 8px;border-bottom:2px solid var(--border);text-align:left;background:var(--surface2);}
+td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+input[type=text],input[type=number],input[type=email],select{
+  background:#fff;border:1.5px solid var(--border);border-radius:6px;color:var(--text);
+  font-family:var(--sans);font-size:13px;padding:6px 8px;outline:none;width:100%;}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,132,199,.1);}
+.mono-input{font-family:var(--mono);}
+.toggle{cursor:pointer;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);}
+.toggle.on{background:rgba(22,163,74,.1);border-color:var(--success);color:var(--success);}
+.toggle.off{background:rgba(220,38,38,.06);border-color:var(--danger);color:var(--danger);}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn.danger{color:var(--danger);}
+.btn:hover{filter:brightness(0.97);}
+.btn-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;}
+.btn-remove:hover{color:var(--danger);}
+.add-row{display:grid;gap:8px;align-items:end;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+.field-label{font-size:10px;font-weight:600;color:var(--label);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;display:block;}
+.status{font-size:12px;margin-top:8px;font-family:var(--mono);min-height:16px;}
+.status.saving{color:var(--warning);}
+.status.saved{color:var(--success);}
+.status.error{color:var(--danger);}
+.auth-screen{position:fixed;inset:0;background:#f0f4f8;display:flex;align-items:center;justify-content:center;z-index:9999;}
+.auth-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:44px 40px;max-width:400px;width:100%;box-shadow:var(--shadow-md);text-align:center;}
+.auth-logo{background:var(--accent);color:#fff;font-family:var(--mono);font-size:18px;font-weight:700;width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.auth-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
+.auth-error{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--danger);margin-top:16px;display:none;}
+.auth-error.show{display:block;}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">IG</div>
+    <div class="auth-title">IGCC Configuration</div>
+    <div class="auth-sub">Admin-only page. Sign in with your company Google account.</div>
+    <button id="google-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:500;color:var(--text);" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.4 0-13.8 4.2-17.1 10.3z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.7 34.9 27 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.9 39.6 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C41.4 36.5 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="auth-error" id="auth-error">Access denied — this account isn't an admin. Contact mohammed.lateef@igccgroup-iq.com</div>
+  </div>
+</div>
+
+<div class="header hidden" id="app-header">
+  <div style="display:flex;align-items:center;">
+    <span class="logo">IGCC</span>
+    <span class="header-title">Configuration</span>
+  </div>
+  <a class="back" href="index.html">← Back to Daily Report</a>
+</div>
+
+<div class="container hidden" id="app-body">
+
+  <!-- CTRs -->
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">CTR Codes</div><div class="section-sub">Shared list — everyone sees these in the CTR # dropdown.</div></div>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>Name</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <tbody id="ctrs-tbody"></tbody>
+    </table>
+    <div class="add-row" style="grid-template-columns:1fr 2fr auto;">
+      <div><label class="field-label">ID</label><input type="text" id="new-ctr-id" class="mono-input" placeholder="CTR-004"></div>
+      <div><label class="field-label">Name</label><input type="text" id="new-ctr-name" placeholder="Package name"></div>
+      <button class="btn primary" onclick="addCtr()">+ Add</button>
+    </div>
+    <div class="status" id="ctrs-status"></div>
+  </div>
+
+  <!-- Equipment types -->
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Equipment Rate Card</div><div class="section-sub">Shared list — auto-fills rate/unit when someone picks an equipment type.</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Type</th><th>Rate (IQD)</th><th style="width:90px;">Unit</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <tbody id="eq-tbody"></tbody>
+    </table>
+    <div class="add-row" style="grid-template-columns:2fr 1fr 1fr auto;">
+      <div><label class="field-label">Type</label><input type="text" id="new-eq-type" placeholder="e.g. Bulldozer"></div>
+      <div><label class="field-label">Rate (IQD)</label><input type="number" id="new-eq-rate" placeholder="0"></div>
+      <div><label class="field-label">Unit</label><input type="text" id="new-eq-unit" placeholder="day" value="day"></div>
+      <button class="btn primary" onclick="addEquipmentType()">+ Add</button>
+    </div>
+    <div class="status" id="eq-status"></div>
+  </div>
+
+  <!-- Border & USD config -->
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Border Worker Rates & USD Rate</div><div class="section-sub">Shared defaults used when someone starts a new border/PO entry.</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:end;">
+      <div><label class="field-label">PA Rate / Day (IQD)</label><input type="number" id="cfg-pa-rate"></div>
+      <div><label class="field-label">Worker Rate / Day (IQD)</label><input type="number" id="cfg-worker-rate"></div>
+      <div><label class="field-label">Default USD Rate</label><input type="number" id="cfg-usd-rate"></div>
+    </div>
+    <button class="btn primary" style="margin-top:14px;" onclick="saveConfig()">Save</button>
+    <div class="status" id="config-status"></div>
+  </div>
+
+  <!-- Allowed users -->
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Who Has Access</div><div class="section-sub">Only emails listed here — and marked Active — can sign in at all.</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Email</th><th>Name</th><th style="width:90px;">Active</th><th style="width:90px;">Admin</th><th style="width:32px;"></th></tr></thead>
+      <tbody id="users-tbody"></tbody>
+    </table>
+    <div class="add-row" style="grid-template-columns:2fr 2fr auto;">
+      <div><label class="field-label">Email</label><input type="email" id="new-user-email" placeholder="name@igccgroup-iq.com"></div>
+      <div><label class="field-label">Display Name</label><input type="text" id="new-user-name" placeholder="Full name"></div>
+      <button class="btn primary" onclick="addAllowedUser()">+ Add</button>
+    </div>
+    <div class="status" id="users-status"></div>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qmirbkxrkaezvzwyaqwd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtaXJia3hya2FlenZ6d3lhcXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NjE5MjQsImV4cCI6MjEwNDMzNzkyNH0.UHJjnRHwp-fakKIy7NhekBc4LF6qOawxXfpekqbA9Gk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function signInWithGoogle() {
+  sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+}
+
+async function handleSession(session) {
+  const { data: isAdmin, error } = await sb.rpc('check_admin');
+  if (error || !isAdmin) {
+    document.getElementById('auth-error').classList.add('show');
+    await sb.auth.signOut();
+    document.getElementById('auth-screen').style.display = 'flex';
+    return;
+  }
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-header').classList.remove('hidden');
+  document.getElementById('app-body').classList.remove('hidden');
+  loadAll();
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+    if (session) handleSession(session);
+    else document.getElementById('auth-screen').style.display = 'flex';
+  }
+});
+
+function setStatus(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'status' + (cls ? ' ' + cls : '');
+  if (text) setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, 2500);
+}
+
+async function loadAll() {
+  await Promise.all([loadCtrs(), loadEquipmentTypes(), loadConfig(), loadAllowedUsers()]);
+}
+
+// ---------- CTRs ----------
+async function loadCtrs() {
+  const { data, error } = await sb.from('ctrs').select('*').order('id');
+  if (error) { setStatus('ctrs-status', 'Load failed: ' + error.message, 'error'); return; }
+  document.getElementById('ctrs-tbody').innerHTML = data.map(c => `
+    <tr>
+      <td class="mono-input">${c.id}</td>
+      <td>${c.name || ''}</td>
+      <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleCtr('${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" onclick="deleteCtr('${c.id}')">×</button></td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">No CTRs yet</td></tr>';
+}
+async function addCtr() {
+  const id = document.getElementById('new-ctr-id').value.trim();
+  const name = document.getElementById('new-ctr-name').value.trim();
+  if (!id) { setStatus('ctrs-status', 'ID is required', 'error'); return; }
+  const { error } = await sb.from('ctrs').insert({ id, name });
+  if (error) { setStatus('ctrs-status', 'Failed: ' + error.message, 'error'); return; }
+  document.getElementById('new-ctr-id').value = '';
+  document.getElementById('new-ctr-name').value = '';
+  setStatus('ctrs-status', '✓ Added', 'saved');
+  loadCtrs();
+}
+async function toggleCtr(id, active) {
+  const { error } = await sb.from('ctrs').update({ active }).eq('id', id);
+  if (error) { setStatus('ctrs-status', 'Failed: ' + error.message, 'error'); return; }
+  loadCtrs();
+}
+async function deleteCtr(id) {
+  if (!confirm(`Delete CTR "${id}"? This can't be undone.`)) return;
+  const { error } = await sb.from('ctrs').delete().eq('id', id);
+  if (error) { setStatus('ctrs-status', 'Failed: ' + error.message, 'error'); return; }
+  loadCtrs();
+}
+
+// ---------- Equipment types ----------
+async function loadEquipmentTypes() {
+  const { data, error } = await sb.from('equipment_types').select('*').order('type');
+  if (error) { setStatus('eq-status', 'Load failed: ' + error.message, 'error'); return; }
+  document.getElementById('eq-tbody').innerHTML = data.map(e => `
+    <tr>
+      <td>${e.type}</td>
+      <td class="mono-input">${Number(e.unit_rate).toLocaleString()}</td>
+      <td>${e.unit}</td>
+      <td><span class="toggle ${e.active?'on':'off'}" onclick="toggleEquipmentType(${e.id}, ${!e.active})">${e.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" onclick="deleteEquipmentType(${e.id})">×</button></td>
+    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;">No equipment types yet</td></tr>';
+}
+async function addEquipmentType() {
+  const type = document.getElementById('new-eq-type').value.trim();
+  const rate = parseFloat(document.getElementById('new-eq-rate').value) || 0;
+  const unit = document.getElementById('new-eq-unit').value.trim() || 'day';
+  if (!type || !rate) { setStatus('eq-status', 'Type and rate are required', 'error'); return; }
+  const { error } = await sb.from('equipment_types').insert({ type, unit_rate: rate, unit });
+  if (error) { setStatus('eq-status', 'Failed: ' + error.message, 'error'); return; }
+  document.getElementById('new-eq-type').value = '';
+  document.getElementById('new-eq-rate').value = '';
+  setStatus('eq-status', '✓ Added', 'saved');
+  loadEquipmentTypes();
+}
+async function toggleEquipmentType(id, active) {
+  const { error } = await sb.from('equipment_types').update({ active }).eq('id', id);
+  if (error) { setStatus('eq-status', 'Failed: ' + error.message, 'error'); return; }
+  loadEquipmentTypes();
+}
+async function deleteEquipmentType(id) {
+  if (!confirm('Delete this equipment type? This can\'t be undone.')) return;
+  const { error } = await sb.from('equipment_types').delete().eq('id', id);
+  if (error) { setStatus('eq-status', 'Failed: ' + error.message, 'error'); return; }
+  loadEquipmentTypes();
+}
+
+// ---------- Border / USD config ----------
+async function loadConfig() {
+  const { data, error } = await sb.from('app_config').select('*');
+  if (error) { setStatus('config-status', 'Load failed: ' + error.message, 'error'); return; }
+  const cfg = {};
+  data.forEach(row => { cfg[row.key] = row.value; });
+  const border = cfg.border_rates || { pa: 0, worker: 0 };
+  document.getElementById('cfg-pa-rate').value = border.pa || 0;
+  document.getElementById('cfg-worker-rate').value = border.worker || 0;
+  document.getElementById('cfg-usd-rate').value = cfg.default_usd_rate || 0;
+}
+async function saveConfig() {
+  const pa = parseFloat(document.getElementById('cfg-pa-rate').value) || 0;
+  const worker = parseFloat(document.getElementById('cfg-worker-rate').value) || 0;
+  const usdRate = parseFloat(document.getElementById('cfg-usd-rate').value) || 0;
+  setStatus('config-status', 'Saving...', 'saving');
+  const results = await Promise.all([
+    sb.from('app_config').upsert({ key: 'border_rates', value: { pa, worker } }),
+    sb.from('app_config').upsert({ key: 'default_usd_rate', value: usdRate }),
+  ]);
+  const failed = results.find(r => r.error);
+  if (failed) { setStatus('config-status', 'Failed: ' + failed.error.message, 'error'); return; }
+  setStatus('config-status', '✓ Saved', 'saved');
+}
+
+// ---------- Allowed users ----------
+async function loadAllowedUsers() {
+  const { data, error } = await sb.from('allowed_emails').select('*').order('added_at');
+  if (error) { setStatus('users-status', 'Load failed: ' + error.message, 'error'); return; }
+  document.getElementById('users-tbody').innerHTML = data.map(u => `
+    <tr>
+      <td class="mono-input">${u.email}</td>
+      <td>${u.display_name || ''}</td>
+      <td><span class="toggle ${u.active?'on':'off'}" onclick="toggleUserField('${u.email}','active',${!u.active})">${u.active?'Active':'Inactive'}</span></td>
+      <td><span class="toggle ${u.is_admin?'on':'off'}" onclick="toggleUserField('${u.email}','is_admin',${!u.is_admin})">${u.is_admin?'Admin':'Staff'}</span></td>
+      <td><button class="btn-remove" onclick="deleteAllowedUser('${u.email}')">×</button></td>
+    </tr>`).join('');
+}
+async function addAllowedUser() {
+  const email = document.getElementById('new-user-email').value.trim().toLowerCase();
+  const name = document.getElementById('new-user-name').value.trim();
+  if (!email) { setStatus('users-status', 'Email is required', 'error'); return; }
+  const { error } = await sb.from('allowed_emails').insert({ email, display_name: name });
+  if (error) { setStatus('users-status', 'Failed: ' + error.message, 'error'); return; }
+  document.getElementById('new-user-email').value = '';
+  document.getElementById('new-user-name').value = '';
+  setStatus('users-status', '✓ Added', 'saved');
+  loadAllowedUsers();
+}
+async function toggleUserField(email, field, value) {
+  const { error } = await sb.from('allowed_emails').update({ [field]: value }).eq('email', email);
+  if (error) { setStatus('users-status', 'Failed: ' + error.message, 'error'); return; }
+  loadAllowedUsers();
+}
+async function deleteAllowedUser(email) {
+  if (!confirm(`Remove access for ${email}?`)) return;
+  const { error } = await sb.from('allowed_emails').delete().eq('email', email);
+  if (error) { setStatus('users-status', 'Failed: ' + error.message, 'error'); return; }
+  loadAllowedUsers();
+}
+</script>
+</body>
+</html>
