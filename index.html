@@ -436,6 +436,7 @@ function enhanceSelect(el, opts) {
   return new TomSelect(el, Object.assign({
     maxOptions: 1000,
     allowEmptyOption: true,
+    dropdownParent: 'body', // avoids the dropdown getting clipped by table/panel scroll containers
   }, opts||{}));
 }
 
@@ -462,10 +463,10 @@ function initProjFields(prefix, onChange) {
 
   const ccTom = new TomSelect(ccEl, {
     options: costCenters.map(c=>({value:c.id, text:c.id+(c.name?' — '+c.name:'')})),
-    placeholder:'Select...', allowEmptyOption:true, maxOptions:1000,
+    placeholder:'Select...', allowEmptyOption:true, maxOptions:1000, dropdownParent:'body',
   });
-  const catTom = new TomSelect(catEl, { options: [], placeholder:'Select cost center first', allowEmptyOption:true, maxOptions:1000 });
-  const projTom= new TomSelect(projEl,{ options: [], placeholder:'Select category first', allowEmptyOption:true, maxOptions:1000 });
+  const catTom = new TomSelect(catEl, { options: [], placeholder:'Select cost center first', allowEmptyOption:true, maxOptions:1000, dropdownParent:'body' });
+  const projTom= new TomSelect(projEl,{ options: [], placeholder:'Select category first', allowEmptyOption:true, maxOptions:1000, dropdownParent:'body' });
 
   ccTom.on('change', function(v){
     catTom.clear(true); catTom.clearOptions();
