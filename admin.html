@@ -73,6 +73,9 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
 .ts-control > div, .ts-control .item, .ts-control input{white-space:normal!important;word-break:break-word!important;line-height:1.3!important;}
 .ts-dropdown{font-family:var(--sans)!important;font-size:12.5px!important;z-index:10050!important;}
 .ts-dropdown .option, .ts-dropdown .create{white-space:normal!important;word-break:break-word!important;line-height:1.35!important;padding:6px 10px!important;}
+th.sortable{cursor:pointer;user-select:none;}
+th.sortable:hover{color:var(--blue);}
+.sort-arrow{font-size:9px;margin-left:4px;opacity:.7;display:inline-block;min-width:8px;}
 </style>
 </head>
 <body>
@@ -110,7 +113,12 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
       <div><div class="section-title">Cost Centers</div><div class="section-sub">Shared, top level of the project hierarchy. Everyone picks one of these first in every dropdown.</div></div>
     </div>
     <table>
-      <thead><tr><th style="width:120px;">ID</th><th>Name</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <thead><tr>
+        <th class="sortable" style="width:120px;" onclick="sortCol('cc','id')">ID<span class="sort-arrow" id="arrow-cc-id"></span></th>
+        <th class="sortable" onclick="sortCol('cc','name')">Name<span class="sort-arrow" id="arrow-cc-name"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('cc','active')">Active<span class="sort-arrow" id="arrow-cc-active"></span></th>
+        <th style="width:32px;"></th>
+      </tr></thead>
       <tbody id="cc-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1fr 2fr auto;">
@@ -127,7 +135,13 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
       <div><div class="section-title">Project Categories</div><div class="section-sub">Each category belongs to one Cost Center — only that Cost Center's categories will show up for someone using it.</div></div>
     </div>
     <table>
-      <thead><tr><th style="width:150px;">Cost Center</th><th style="width:120px;">ID</th><th>Name</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <thead><tr>
+        <th class="sortable" style="width:150px;" onclick="sortCol('cat','cc')">Cost Center<span class="sort-arrow" id="arrow-cat-cc"></span></th>
+        <th class="sortable" style="width:120px;" onclick="sortCol('cat','id')">ID<span class="sort-arrow" id="arrow-cat-id"></span></th>
+        <th class="sortable" onclick="sortCol('cat','name')">Name<span class="sort-arrow" id="arrow-cat-name"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('cat','active')">Active<span class="sort-arrow" id="arrow-cat-active"></span></th>
+        <th style="width:32px;"></th>
+      </tr></thead>
       <tbody id="cat-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1.4fr 1fr 2fr auto;">
@@ -145,7 +159,14 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
       <div><div class="section-title">Projects</div><div class="section-sub">Each project belongs to one Cost Center + Project Category. The Description here is what auto-fills "Project DESC" once someone picks this project.</div></div>
     </div>
     <table>
-      <thead><tr><th style="width:150px;">Cost Center</th><th style="width:150px;">Category</th><th style="width:120px;">ID</th><th>Description</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <thead><tr>
+        <th class="sortable" style="width:150px;" onclick="sortCol('proj','cc')">Cost Center<span class="sort-arrow" id="arrow-proj-cc"></span></th>
+        <th class="sortable" style="width:150px;" onclick="sortCol('proj','cat')">Category<span class="sort-arrow" id="arrow-proj-cat"></span></th>
+        <th class="sortable" style="width:120px;" onclick="sortCol('proj','id')">ID<span class="sort-arrow" id="arrow-proj-id"></span></th>
+        <th class="sortable" onclick="sortCol('proj','desc')">Description<span class="sort-arrow" id="arrow-proj-desc"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('proj','active')">Active<span class="sort-arrow" id="arrow-proj-active"></span></th>
+        <th style="width:32px;"></th>
+      </tr></thead>
       <tbody id="proj-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1.2fr 1.2fr .8fr 2fr auto;">
@@ -164,7 +185,13 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
       <div><div class="section-title">Equipment Rate Card</div><div class="section-sub">Shared list — auto-fills rate/unit when someone picks an equipment type.</div></div>
     </div>
     <table>
-      <thead><tr><th>Type</th><th>Rate (IQD)</th><th style="width:90px;">Unit</th><th style="width:90px;">Active</th><th style="width:32px;"></th></tr></thead>
+      <thead><tr>
+        <th class="sortable" onclick="sortCol('eq','type')">Type<span class="sort-arrow" id="arrow-eq-type"></span></th>
+        <th class="sortable" onclick="sortCol('eq','rate')">Rate (IQD)<span class="sort-arrow" id="arrow-eq-rate"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('eq','unit')">Unit<span class="sort-arrow" id="arrow-eq-unit"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('eq','active')">Active<span class="sort-arrow" id="arrow-eq-active"></span></th>
+        <th style="width:32px;"></th>
+      </tr></thead>
       <tbody id="eq-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:2fr 1fr 1fr auto;">
@@ -196,7 +223,13 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
       <div><div class="section-title">Who Has Access</div><div class="section-sub">Only emails listed here — and marked Active — can sign in at all.</div></div>
     </div>
     <table>
-      <thead><tr><th>Email</th><th>Name</th><th style="width:90px;">Active</th><th style="width:90px;">Admin</th><th style="width:32px;"></th></tr></thead>
+      <thead><tr>
+        <th class="sortable" onclick="sortCol('users','email')">Email<span class="sort-arrow" id="arrow-users-email"></span></th>
+        <th class="sortable" onclick="sortCol('users','name')">Name<span class="sort-arrow" id="arrow-users-name"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('users','active')">Active<span class="sort-arrow" id="arrow-users-active"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('users','admin')">Admin<span class="sort-arrow" id="arrow-users-admin"></span></th>
+        <th style="width:32px;"></th>
+      </tr></thead>
       <tbody id="users-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:2fr 2fr auto;">
@@ -273,6 +306,60 @@ function enhanceSelect(el, opts) {
   return new TomSelect(el, Object.assign({ maxOptions: 1000, allowEmptyOption: true, dropdownParent: 'body' }, opts||{}));
 }
 
+// ---------- SORTING (every table column header, A-Z / Z-A) ----------
+// One generic mechanism used by every table on this page: click a column
+// header to sort by it ascending, click again for descending. `sortState`
+// remembers the current column + direction per table; `COLUMN_GETTERS` says
+// how to read each column's value off a row for comparison.
+const sortState = {}; // tableKey -> { col, dir: 1 (A-Z) | -1 (Z-A) }
+
+const COLUMN_GETTERS = {
+  cc:    { id: r=>r.id, name: r=>r.name||'', active: r=>r.active?1:0 },
+  cat:   { cc: r=>r.cost_center_id, id: r=>r.id, name: r=>r.name||'', active: r=>r.active?1:0 },
+  proj:  { cc: r=>r.cost_center_id, cat: r=>r.category_id, id: r=>r.id, desc: r=>r.description||'', active: r=>r.active?1:0 },
+  eq:    { type: r=>r.type, rate: r=>Number(r.unit_rate)||0, unit: r=>r.unit||'', active: r=>r.active?1:0 },
+  users: { email: r=>r.email, name: r=>r.display_name||'', active: r=>r.active?1:0, admin: r=>r.is_admin?1:0 },
+};
+
+function sortRows(rows, tableKey) {
+  const st = sortState[tableKey];
+  if (!st || !st.col) return rows;
+  const getter = COLUMN_GETTERS[tableKey][st.col];
+  return [...rows].sort((a, b) => {
+    let av = getter(a), bv = getter(b);
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = String(bv).toLowerCase(); }
+    if (av < bv) return -1 * st.dir;
+    if (av > bv) return  1 * st.dir;
+    return 0;
+  });
+}
+
+function sortCol(tableKey, col) {
+  const st = sortState[tableKey] || (sortState[tableKey] = { col: null, dir: 1 });
+  if (st.col === col) st.dir = -st.dir; else { st.col = col; st.dir = 1; }
+  updateSortArrows(tableKey);
+  RENDER_FNS[tableKey]();
+}
+
+// Function declarations below are hoisted, so it's safe to reference them
+// here even though they're defined further down the file.
+const RENDER_FNS = {
+  cc:    () => renderCostCentersTable(),
+  cat:   () => renderProjectCategoriesTable(),
+  proj:  () => renderProjectsTable(),
+  eq:    () => renderEquipmentTypesTable(),
+  users: () => renderAllowedUsersTable(),
+};
+
+function updateSortArrows(tableKey) {
+  const st = sortState[tableKey];
+  document.querySelectorAll(`[id^="arrow-${tableKey}-"]`).forEach(el => el.textContent = '');
+  if (st && st.col) {
+    const el = document.getElementById(`arrow-${tableKey}-${st.col}`);
+    if (el) el.textContent = st.dir === 1 ? '▲' : '▼';
+  }
+}
+
 // ---------- Cost Centers ----------
 let costCenters = []; // cached for the Project Categories / Projects pickers below
 
@@ -280,13 +367,7 @@ async function loadCostCenters() {
   const { data, error } = await sb.from('cost_centers').select('*').order('id');
   if (error) { setStatus('cc-status', 'Load failed: ' + error.message, 'error'); return; }
   costCenters = data || [];
-  document.getElementById('cc-tbody').innerHTML = costCenters.map(c => `
-    <tr>
-      <td class="mono-input">${c.id}</td>
-      <td>${c.name || ''}</td>
-      <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleCostCenter('${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
-      <td><button class="btn-remove" onclick="deleteCostCenter('${c.id}')">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">No cost centers yet — add one below</td></tr>';
+  renderCostCentersTable();
 
   // Refresh the Cost Center pickers used by Project Categories / Projects forms
   const ccOpts = costCenters.filter(c=>c.active).map(c=>({value:c.id, text:c.id+(c.name?' — '+c.name:'')}));
@@ -294,6 +375,16 @@ async function loadCostCenters() {
   enhanceSelect(document.getElementById('new-proj-cc'), { options: ccOpts, placeholder:'Select cost center...' });
   document.getElementById('new-proj-cc').tomselect.on('change', onNewProjCC);
   onNewProjCC();
+}
+function renderCostCentersTable() {
+  const rows = sortRows(costCenters, 'cc');
+  document.getElementById('cc-tbody').innerHTML = rows.map(c => `
+    <tr>
+      <td class="mono-input">${c.id}</td>
+      <td>${c.name || ''}</td>
+      <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleCostCenter('${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" onclick="deleteCostCenter('${c.id}')">×</button></td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">No cost centers yet — add one below</td></tr>';
 }
 async function addCostCenter() {
   const id = document.getElementById('new-cc-id').value.trim();
@@ -325,7 +416,11 @@ async function loadProjectCategories() {
   const { data, error } = await sb.from('project_categories').select('*').order('cost_center_id').order('id');
   if (error) { setStatus('cat-status', 'Load failed: ' + error.message, 'error'); return; }
   projectCategories = data || [];
-  document.getElementById('cat-tbody').innerHTML = projectCategories.map(c => `
+  renderProjectCategoriesTable();
+}
+function renderProjectCategoriesTable() {
+  const rows = sortRows(projectCategories, 'cat');
+  document.getElementById('cat-tbody').innerHTML = rows.map(c => `
     <tr>
       <td class="mono-input">${c.cost_center_id}</td>
       <td class="mono-input">${c.id}</td>
@@ -360,10 +455,17 @@ async function deleteProjectCategory(cc, id) {
 }
 
 // ---------- Projects ----------
+let projectsList = [];
+
 async function loadProjects() {
   const { data, error } = await sb.from('projects').select('*').order('cost_center_id').order('category_id').order('id');
   if (error) { setStatus('proj-status', 'Load failed: ' + error.message, 'error'); return; }
-  document.getElementById('proj-tbody').innerHTML = (data||[]).map(p => `
+  projectsList = data || [];
+  renderProjectsTable();
+}
+function renderProjectsTable() {
+  const rows = sortRows(projectsList, 'proj');
+  document.getElementById('proj-tbody').innerHTML = rows.map(p => `
     <tr>
       <td class="mono-input">${p.cost_center_id}</td>
       <td class="mono-input">${p.category_id}</td>
@@ -405,10 +507,17 @@ async function deleteProject(cc, cat, id) {
 }
 
 // ---------- Equipment types ----------
+let equipmentTypes = [];
+
 async function loadEquipmentTypes() {
   const { data, error } = await sb.from('equipment_types').select('*').order('type');
   if (error) { setStatus('eq-status', 'Load failed: ' + error.message, 'error'); return; }
-  document.getElementById('eq-tbody').innerHTML = data.map(e => `
+  equipmentTypes = data || [];
+  renderEquipmentTypesTable();
+}
+function renderEquipmentTypesTable() {
+  const rows = sortRows(equipmentTypes, 'eq');
+  document.getElementById('eq-tbody').innerHTML = rows.map(e => `
     <tr>
       <td>${e.type}</td>
       <td class="mono-input">${Number(e.unit_rate).toLocaleString()}</td>
@@ -467,10 +576,17 @@ async function saveConfig() {
 }
 
 // ---------- Allowed users ----------
+let allowedUsers = [];
+
 async function loadAllowedUsers() {
   const { data, error } = await sb.from('allowed_emails').select('*').order('added_at');
   if (error) { setStatus('users-status', 'Load failed: ' + error.message, 'error'); return; }
-  document.getElementById('users-tbody').innerHTML = data.map(u => `
+  allowedUsers = data || [];
+  renderAllowedUsersTable();
+}
+function renderAllowedUsersTable() {
+  const rows = sortRows(allowedUsers, 'users');
+  document.getElementById('users-tbody').innerHTML = rows.map(u => `
     <tr>
       <td class="mono-input">${u.email}</td>
       <td>${u.display_name || ''}</td>
