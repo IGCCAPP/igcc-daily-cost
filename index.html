@@ -258,6 +258,34 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
     </div>
   </div>
 
+  <!-- ══════ MANAGE MY EMPLOYEES (transfers / departures / dept moves) ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">👥 Manage My Employees</div>
+      <button class="btn-sm btn-sm-cancel" id="btn-toggle-manage-emp" onclick="toggleManageEmployees()">Show</button>
+    </div>
+    <div id="manage-emp-body" class="hidden">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">
+        This is your own roster, across all departments. If someone transfers to another team, moves to another location, or leaves your crew — mark them <strong>Inactive</strong> here instead of deleting them; reports you've already submitted keep showing their name and cost either way, and you can reactivate them any time. You can also move someone to a different department, or delete them permanently if they were added by mistake.
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="grid-table">
+          <thead><tr>
+            <th>Employee</th>
+            <th style="width:160px;">Department</th>
+            <th>Position</th>
+            <th style="width:120px;">Daily Rate</th>
+            <th style="width:100px;">Status</th>
+            <th style="width:32px;"></th>
+          </tr></thead>
+          <tbody id="manage-emp-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted);">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ══════ EQUIPMENT ══════ -->
   <div class="section">
     <div class="section-header">
@@ -679,6 +707,85 @@ async function addEmpToList() {
   hint.textContent = '✓ ' + name + ' added and saved permanently';
   document.getElementById('add-emp-form').parentNode.appendChild(hint);
   setTimeout(()=>hint.remove(), 3000);
+
+  loadMyEmployees(); // keep the management panel in sync
+}
+
+// ── MANAGE MY EMPLOYEES (deactivate on transfer/departure, move dept, delete) ──
+const DEPT_LIST = ['Civil','Mechanical','Electrical','HSE','QAQC','Planning'];
+let myEmployees = []; // every employee this signed-in person owns, active or not
+
+function toggleManageEmployees() {
+  const body = document.getElementById('manage-emp-body');
+  const btn  = document.getElementById('btn-toggle-manage-emp');
+  const show = body.classList.toggle('hidden') === false;
+  btn.textContent = show ? 'Hide' : 'Show';
+  if (show) loadMyEmployees();
+}
+
+async function loadMyEmployees() {
+  const { data, error } = await sb.from('employees').select('*').order('dept').order('name');
+  if (error) { console.error('Could not load your employee roster:', error); return; }
+  myEmployees = data || [];
+  renderManageEmpTable();
+}
+
+function renderManageEmpTable() {
+  const tbody = document.getElementById('manage-emp-tbody');
+  if (!myEmployees.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted);">You haven\'t added any employees yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = myEmployees.map(e => `
+    <tr>
+      <td><div class="emp-name">${e.name}</div><div class="emp-id">${e.id}</div></td>
+      <td>
+        <select onchange="changeEmployeeDept('${e.id}', this.value)">
+          ${DEPT_LIST.map(d => `<option value="${d}" ${d===e.dept?'selected':''}>${d}</option>`).join('')}
+        </select>
+      </td>
+      <td style="font-size:12px;color:var(--muted);">${e.position||''}</td>
+      <td style="font-family:var(--mono);font-size:12px;">${e.currency==='USD'?'$'+Number(e.daily_rate).toLocaleString():fmt(Number(e.daily_rate))}</td>
+      <td><span class="toggle-status ${e.active?'':'inactive'}" style="cursor:pointer;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid ${e.active?'var(--success)':'var(--danger)'};background:${e.active?'rgba(22,163,74,.1)':'rgba(220,38,38,.06)'};color:${e.active?'var(--success)':'var(--danger)'};"
+          onclick="toggleEmployeeActive('${e.id}', ${!e.active})">${e.active?'Active':'Inactive'}</span></td>
+      <td><button class="btn-remove" title="Delete permanently" onclick="deleteEmployeeForever('${e.id}','${(e.name||'').replace(/'/g,"\\'")}')">×</button></td>
+    </tr>`).join('');
+}
+
+// Refreshes just the employee roster + attendance table — not the whole
+// page — so it doesn't disturb Credit Notes / Equipment / Procurement rows
+// you may already have filled in today.
+async function refreshEmployeesAndAttendance() {
+  const { data, error } = await sb.from('employees').select('*').eq('active', true);
+  if (error) { console.error('Could not refresh employees:', error); return; }
+  employees = {};
+  data.forEach(e => {
+    if (!employees[e.dept]) employees[e.dept] = [];
+    employees[e.dept].push({ id: e.id, name: e.name, position: e.position, dailyRate: Number(e.daily_rate), currency: e.currency });
+  });
+  renderDept(currentDept);
+}
+
+async function changeEmployeeDept(id, newDept) {
+  const { error } = await sb.from('employees').update({ dept: newDept }).eq('id', id);
+  if (error) { alert('Failed to move employee: ' + error.message); return; }
+  await loadMyEmployees();
+  await refreshEmployeesAndAttendance();
+}
+
+async function toggleEmployeeActive(id, active) {
+  const { error } = await sb.from('employees').update({ active }).eq('id', id);
+  if (error) { alert('Failed to update employee: ' + error.message); return; }
+  await loadMyEmployees();
+  await refreshEmployeesAndAttendance();
+}
+
+async function deleteEmployeeForever(id, name) {
+  if (!confirm(`Permanently delete "${name}" (${id}) from your roster?\n\nThis can't be undone. Reports you've already submitted are not affected — they keep their own copy of this employee's name and cost.`)) return;
+  const { error } = await sb.from('employees').delete().eq('id', id);
+  if (error) { alert('Failed to delete employee: ' + error.message); return; }
+  await loadMyEmployees();
+  await refreshEmployeesAndAttendance();
 }
 
 function calcMP() {
