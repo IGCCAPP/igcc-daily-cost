@@ -165,6 +165,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
 <div class="topright-bar hidden" id="topright-bar">
   <span class="signed-in-as" id="signed-in-as"></span>
   <a class="btn-signout" href="../index.html" style="text-decoration:none;">🏠 Portal</a>
+  <a class="btn-signout hidden" id="btn-dashboard" href="dashboard.html" style="text-decoration:none;">📊 Dashboard</a>
   <a class="btn-signout hidden" id="btn-admin" href="admin.html" style="text-decoration:none;">⚙ Configuration</a>
   <button class="btn-signout" id="btn-signout" onclick="signOut()">Sign out</button>
 </div>
@@ -1310,6 +1311,9 @@ async function handleSession(session) {
   const { data: isAdmin } = await sb.rpc('check_admin');
   isAdminUser = !!isAdmin;
   if (isAdminUser) document.getElementById('btn-admin').classList.remove('hidden');
+
+  const { data: canAudit } = await sb.rpc('check_auditor');
+  if (canAudit) document.getElementById('btn-dashboard').classList.remove('hidden');
 
   // Department-scoped access: admins see every department tab; everyone else
   // only sees the ones an admin has explicitly granted them in admin.html.
