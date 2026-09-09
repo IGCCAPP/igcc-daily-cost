@@ -44,6 +44,10 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
 .toggle{cursor:pointer;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);}
 .toggle.on{background:rgba(22,163,74,.1);border-color:var(--success);color:var(--success);}
 .toggle.off{background:rgba(220,38,38,.06);border-color:var(--danger);color:var(--danger);}
+.dept-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.dept-chip{cursor:pointer;padding:2px 8px;border-radius:9px;font-size:10.5px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);white-space:nowrap;}
+.dept-chip.on{background:rgba(2,132,199,.1);border-color:var(--blue);color:var(--blue);}
+.dept-admin-note{font-size:11.5px;color:var(--muted);font-style:italic;}
 .btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;}
 .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
 .btn.danger{color:var(--danger);}
@@ -79,6 +83,10 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(2,13
 th.sortable{cursor:pointer;user-select:none;}
 th.sortable:hover{color:var(--blue);}
 .sort-arrow{font-size:9px;margin-left:4px;opacity:.7;display:inline-block;min-width:8px;}
+.filter-row th{padding:4px 6px;background:var(--surface2);border-bottom:2px solid var(--border);text-transform:none;letter-spacing:0;}
+.filter-row input,.filter-row select{width:100%;padding:4px 6px;font-size:12px;border-radius:5px;font-weight:400;}
+.clear-filters{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:none;font-family:var(--sans);font-weight:600;padding:0;margin-left:10px;}
+.clear-filters:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -103,6 +111,7 @@ th.sortable:hover{color:var(--blue);}
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <span style="font-size:11px;color:rgba(255,255,255,.7);font-family:var(--mono);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:6px;" id="signed-in-as"></span>
+    <a class="back" href="../index.html">🏠 Portal</a>
     <a class="back" href="index.html">← Back to Daily Report</a>
     <button class="back" style="cursor:pointer;" onclick="signOutAdmin()">Sign out</button>
   </div>
@@ -113,15 +122,27 @@ th.sortable:hover{color:var(--blue);}
   <!-- COST CENTERS -->
   <div class="section">
     <div class="section-header">
-      <div><div class="section-title">Cost Centers</div><div class="section-sub">Shared, top level of the project hierarchy. Everyone picks one of these first in every dropdown.</div></div>
+      <div><div class="section-title">Cost Centers<button class="clear-filters" onclick="clearFilters('cc')">Clear filters</button></div><div class="section-sub">Shared, top level of the project hierarchy. Everyone picks one of these first in every dropdown.</div></div>
     </div>
     <table>
-      <thead><tr>
+      <thead>
+      <tr>
         <th class="sortable" style="width:120px;" onclick="sortCol('cc','id')">ID<span class="sort-arrow" id="arrow-cc-id"></span></th>
         <th class="sortable" onclick="sortCol('cc','name')">Name<span class="sort-arrow" id="arrow-cc-name"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('cc','active')">Active<span class="sort-arrow" id="arrow-cc-active"></span></th>
         <th style="width:32px;"></th>
-      </tr></thead>
+      </tr>
+      <tr class="filter-row">
+        <th><input type="text" id="filter-cc-id" placeholder="Filter..." oninput="setFilter('cc','id',this.value)"></th>
+        <th><input type="text" id="filter-cc-name" placeholder="Filter..." oninput="setFilter('cc','name',this.value)"></th>
+        <th>
+          <select id="filter-cc-active" onchange="setFilter('cc','active',this.value)">
+            <option value="">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+          </select>
+        </th>
+        <th></th>
+      </tr>
+      </thead>
       <tbody id="cc-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1fr 2fr auto;">
@@ -135,16 +156,29 @@ th.sortable:hover{color:var(--blue);}
   <!-- PROJECT CATEGORIES -->
   <div class="section">
     <div class="section-header">
-      <div><div class="section-title">Project Categories</div><div class="section-sub">Each category belongs to one Cost Center — only that Cost Center's categories will show up for someone using it.</div></div>
+      <div><div class="section-title">Project Categories<button class="clear-filters" onclick="clearFilters('cat')">Clear filters</button></div><div class="section-sub">Each category belongs to one Cost Center — only that Cost Center's categories will show up for someone using it.</div></div>
     </div>
     <table>
-      <thead><tr>
+      <thead>
+      <tr>
         <th class="sortable" style="width:150px;" onclick="sortCol('cat','cc')">Cost Center<span class="sort-arrow" id="arrow-cat-cc"></span></th>
         <th class="sortable" style="width:120px;" onclick="sortCol('cat','id')">ID<span class="sort-arrow" id="arrow-cat-id"></span></th>
         <th class="sortable" onclick="sortCol('cat','name')">Name<span class="sort-arrow" id="arrow-cat-name"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('cat','active')">Active<span class="sort-arrow" id="arrow-cat-active"></span></th>
         <th style="width:32px;"></th>
-      </tr></thead>
+      </tr>
+      <tr class="filter-row">
+        <th><input type="text" id="filter-cat-cc" placeholder="Filter..." oninput="setFilter('cat','cc',this.value)"></th>
+        <th><input type="text" id="filter-cat-id" placeholder="Filter..." oninput="setFilter('cat','id',this.value)"></th>
+        <th><input type="text" id="filter-cat-name" placeholder="Filter..." oninput="setFilter('cat','name',this.value)"></th>
+        <th>
+          <select id="filter-cat-active" onchange="setFilter('cat','active',this.value)">
+            <option value="">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+          </select>
+        </th>
+        <th></th>
+      </tr>
+      </thead>
       <tbody id="cat-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1.4fr 1fr 2fr auto;">
@@ -159,17 +193,31 @@ th.sortable:hover{color:var(--blue);}
   <!-- PROJECTS -->
   <div class="section">
     <div class="section-header">
-      <div><div class="section-title">Projects</div><div class="section-sub">Each project belongs to one Cost Center + Project Category. The Description here is what auto-fills "Project DESC" once someone picks this project.</div></div>
+      <div><div class="section-title">Projects<button class="clear-filters" onclick="clearFilters('proj')">Clear filters</button></div><div class="section-sub">Each project belongs to one Cost Center + Project Category. The Description here is what auto-fills "Project DESC" once someone picks this project.</div></div>
     </div>
     <table>
-      <thead><tr>
+      <thead>
+      <tr>
         <th class="sortable" style="width:150px;" onclick="sortCol('proj','cc')">Cost Center<span class="sort-arrow" id="arrow-proj-cc"></span></th>
         <th class="sortable" style="width:150px;" onclick="sortCol('proj','cat')">Category<span class="sort-arrow" id="arrow-proj-cat"></span></th>
         <th class="sortable" style="width:120px;" onclick="sortCol('proj','id')">ID<span class="sort-arrow" id="arrow-proj-id"></span></th>
         <th class="sortable" onclick="sortCol('proj','desc')">Description<span class="sort-arrow" id="arrow-proj-desc"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('proj','active')">Active<span class="sort-arrow" id="arrow-proj-active"></span></th>
         <th style="width:32px;"></th>
-      </tr></thead>
+      </tr>
+      <tr class="filter-row">
+        <th><input type="text" id="filter-proj-cc" placeholder="Filter..." oninput="setFilter('proj','cc',this.value)"></th>
+        <th><input type="text" id="filter-proj-cat" placeholder="Filter..." oninput="setFilter('proj','cat',this.value)"></th>
+        <th><input type="text" id="filter-proj-id" placeholder="Filter..." oninput="setFilter('proj','id',this.value)"></th>
+        <th><input type="text" id="filter-proj-desc" placeholder="Filter..." oninput="setFilter('proj','desc',this.value)"></th>
+        <th>
+          <select id="filter-proj-active" onchange="setFilter('proj','active',this.value)">
+            <option value="">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+          </select>
+        </th>
+        <th></th>
+      </tr>
+      </thead>
       <tbody id="proj-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:1.2fr 1.2fr .8fr 2fr auto;">
@@ -185,16 +233,29 @@ th.sortable:hover{color:var(--blue);}
   <!-- Equipment types -->
   <div class="section">
     <div class="section-header">
-      <div><div class="section-title">Equipment Rate Card</div><div class="section-sub">Shared list — auto-fills rate/unit when someone picks an equipment type.</div></div>
+      <div><div class="section-title">Equipment Rate Card<button class="clear-filters" onclick="clearFilters('eq')">Clear filters</button></div><div class="section-sub">Shared list — auto-fills rate/unit when someone picks an equipment type.</div></div>
     </div>
     <table>
-      <thead><tr>
+      <thead>
+      <tr>
         <th class="sortable" onclick="sortCol('eq','type')">Type<span class="sort-arrow" id="arrow-eq-type"></span></th>
         <th class="sortable" onclick="sortCol('eq','rate')">Rate (IQD)<span class="sort-arrow" id="arrow-eq-rate"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('eq','unit')">Unit<span class="sort-arrow" id="arrow-eq-unit"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('eq','active')">Active<span class="sort-arrow" id="arrow-eq-active"></span></th>
         <th style="width:32px;"></th>
-      </tr></thead>
+      </tr>
+      <tr class="filter-row">
+        <th><input type="text" id="filter-eq-type" placeholder="Filter..." oninput="setFilter('eq','type',this.value)"></th>
+        <th><input type="text" id="filter-eq-rate" placeholder="Filter..." oninput="setFilter('eq','rate',this.value)"></th>
+        <th><input type="text" id="filter-eq-unit" placeholder="Filter..." oninput="setFilter('eq','unit',this.value)"></th>
+        <th>
+          <select id="filter-eq-active" onchange="setFilter('eq','active',this.value)">
+            <option value="">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+          </select>
+        </th>
+        <th></th>
+      </tr>
+      </thead>
       <tbody id="eq-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:2fr 1fr 1fr auto;">
@@ -223,16 +284,35 @@ th.sortable:hover{color:var(--blue);}
   <!-- Allowed users -->
   <div class="section">
     <div class="section-header">
-      <div><div class="section-title">Who Has Access</div><div class="section-sub">Only emails listed here — and marked Active — can sign in at all.</div></div>
+      <div><div class="section-title">Who Has Access<button class="clear-filters" onclick="clearFilters('users')">Clear filters</button></div><div class="section-sub">Only emails listed here — and marked Active — can sign in at all.</div></div>
     </div>
     <table>
-      <thead><tr>
+      <thead>
+      <tr>
         <th class="sortable" onclick="sortCol('users','email')">Email<span class="sort-arrow" id="arrow-users-email"></span></th>
         <th class="sortable" onclick="sortCol('users','name')">Name<span class="sort-arrow" id="arrow-users-name"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('users','active')">Active<span class="sort-arrow" id="arrow-users-active"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('users','admin')">Admin<span class="sort-arrow" id="arrow-users-admin"></span></th>
+        <th style="min-width:300px;">Departments (Daily Report)</th>
         <th style="width:32px;"></th>
-      </tr></thead>
+      </tr>
+      <tr class="filter-row">
+        <th><input type="text" id="filter-users-email" placeholder="Filter..." oninput="setFilter('users','email',this.value)"></th>
+        <th><input type="text" id="filter-users-name" placeholder="Filter..." oninput="setFilter('users','name',this.value)"></th>
+        <th>
+          <select id="filter-users-active" onchange="setFilter('users','active',this.value)">
+            <option value="">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+          </select>
+        </th>
+        <th>
+          <select id="filter-users-admin" onchange="setFilter('users','admin',this.value)">
+            <option value="">All</option><option value="admin">Admin</option><option value="staff">Staff</option>
+          </select>
+        </th>
+        <th></th>
+        <th></th>
+      </tr>
+      </thead>
       <tbody id="users-tbody"></tbody>
     </table>
     <div class="add-row" style="grid-template-columns:2fr 2fr auto;">
@@ -363,6 +443,41 @@ function updateSortArrows(tableKey) {
   }
 }
 
+// ---------- FILTERING (a filter box under every column header) ----------
+// Same idea as sorting: `filterState[tableKey][col]` holds whatever the user
+// typed/picked for that column. Text columns do a case-insensitive substring
+// match; the Active/Admin columns use a dropdown ('', 'active'/'inactive',
+// 'admin'/'staff') matched against the same COLUMN_GETTERS used for sorting.
+const filterState = {}; // tableKey -> { col: value }
+
+function setFilter(tableKey, col, value) {
+  if (!filterState[tableKey]) filterState[tableKey] = {};
+  filterState[tableKey][col] = value || '';
+  RENDER_FNS[tableKey]();
+}
+
+function filterRows(rows, tableKey) {
+  const filters = filterState[tableKey];
+  if (!filters) return rows;
+  const getters = COLUMN_GETTERS[tableKey];
+  const activeCols = Object.keys(filters).filter(c => filters[c]);
+  if (!activeCols.length) return rows;
+  return rows.filter(r => activeCols.every(col => {
+    const fv = filters[col];
+    const getter = getters[col];
+    const val = getter ? getter(r) : '';
+    if (col === 'active') return (fv === 'active' && val === 1) || (fv === 'inactive' && val === 0);
+    if (col === 'admin') return (fv === 'admin' && val === 1) || (fv === 'staff' && val === 0);
+    return String(val).toLowerCase().includes(fv.toLowerCase());
+  }));
+}
+
+function clearFilters(tableKey) {
+  filterState[tableKey] = {};
+  document.querySelectorAll(`[id^="filter-${tableKey}-"]`).forEach(el => { el.value = ''; });
+  RENDER_FNS[tableKey]();
+}
+
 // ---------- Cost Centers ----------
 let costCenters = []; // cached for the Project Categories / Projects pickers below
 
@@ -380,14 +495,14 @@ async function loadCostCenters() {
   onNewProjCC();
 }
 function renderCostCentersTable() {
-  const rows = sortRows(costCenters, 'cc');
+  const rows = sortRows(filterRows(costCenters, 'cc'), 'cc');
   document.getElementById('cc-tbody').innerHTML = rows.map(c => `
     <tr>
       <td class="mono-input">${c.id}</td>
       <td>${c.name || ''}</td>
       <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleCostCenter('${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
       <td><button class="btn-remove" onclick="deleteCostCenter('${c.id}')">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">No cost centers yet — add one below</td></tr>';
+    </tr>`).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;">${costCenters.length ? 'No rows match your filters' : 'No cost centers yet — add one below'}</td></tr>`;
 }
 async function addCostCenter() {
   const id = document.getElementById('new-cc-id').value.trim();
@@ -422,7 +537,7 @@ async function loadProjectCategories() {
   renderProjectCategoriesTable();
 }
 function renderProjectCategoriesTable() {
-  const rows = sortRows(projectCategories, 'cat');
+  const rows = sortRows(filterRows(projectCategories, 'cat'), 'cat');
   document.getElementById('cat-tbody').innerHTML = rows.map(c => `
     <tr>
       <td class="mono-input">${c.cost_center_id}</td>
@@ -430,7 +545,7 @@ function renderProjectCategoriesTable() {
       <td>${c.name || ''}</td>
       <td><span class="toggle ${c.active?'on':'off'}" onclick="toggleProjectCategory('${c.cost_center_id}','${c.id}', ${!c.active})">${c.active?'Active':'Inactive'}</span></td>
       <td><button class="btn-remove" onclick="deleteProjectCategory('${c.cost_center_id}','${c.id}')">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;">No project categories yet — add a Cost Center above first</td></tr>';
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;">${projectCategories.length ? 'No rows match your filters' : 'No project categories yet — add a Cost Center above first'}</td></tr>`;
 }
 async function addProjectCategory() {
   const cc = document.getElementById('new-cat-cc').value;
@@ -467,7 +582,7 @@ async function loadProjects() {
   renderProjectsTable();
 }
 function renderProjectsTable() {
-  const rows = sortRows(projectsList, 'proj');
+  const rows = sortRows(filterRows(projectsList, 'proj'), 'proj');
   document.getElementById('proj-tbody').innerHTML = rows.map(p => `
     <tr>
       <td class="mono-input">${p.cost_center_id}</td>
@@ -476,7 +591,7 @@ function renderProjectsTable() {
       <td>${p.description || ''}</td>
       <td><span class="toggle ${p.active?'on':'off'}" onclick="toggleProject('${p.cost_center_id}','${p.category_id}','${p.id}', ${!p.active})">${p.active?'Active':'Inactive'}</span></td>
       <td><button class="btn-remove" onclick="deleteProject('${p.cost_center_id}','${p.category_id}','${p.id}')">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px;">No projects yet — add a Project Category above first</td></tr>';
+    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px;">${projectsList.length ? 'No rows match your filters' : 'No projects yet — add a Project Category above first'}</td></tr>`;
 }
 function onNewProjCC() {
   const cc = document.getElementById('new-proj-cc').value;
@@ -519,7 +634,7 @@ async function loadEquipmentTypes() {
   renderEquipmentTypesTable();
 }
 function renderEquipmentTypesTable() {
-  const rows = sortRows(equipmentTypes, 'eq');
+  const rows = sortRows(filterRows(equipmentTypes, 'eq'), 'eq');
   document.getElementById('eq-tbody').innerHTML = rows.map(e => `
     <tr>
       <td>${e.type}</td>
@@ -527,7 +642,7 @@ function renderEquipmentTypesTable() {
       <td>${e.unit}</td>
       <td><span class="toggle ${e.active?'on':'off'}" onclick="toggleEquipmentType(${e.id}, ${!e.active})">${e.active?'Active':'Inactive'}</span></td>
       <td><button class="btn-remove" onclick="deleteEquipmentType(${e.id})">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;">No equipment types yet</td></tr>';
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;">${equipmentTypes.length ? 'No rows match your filters' : 'No equipment types yet'}</td></tr>`;
 }
 async function addEquipmentType() {
   const type = document.getElementById('new-eq-type').value.trim();
@@ -581,22 +696,57 @@ async function saveConfig() {
 // ---------- Allowed users ----------
 let allowedUsers = [];
 
+// Every department in the Daily Report — kept in sync with the dept-tabs in
+// daily.html. Access to each is granted per-user via daily_department_access;
+// admins (is_admin) implicitly see all of them regardless of this table.
+const DEPARTMENTS_LIST = ['Civil','Mechanical','Electrical','GRE','Flow Line','HSE','QAQC','Planning'];
+let deptAccessByEmail = {}; // email -> Set(dept)
+
 async function loadAllowedUsers() {
-  const { data, error } = await sb.from('allowed_emails').select('*').order('added_at');
-  if (error) { setStatus('users-status', 'Load failed: ' + error.message, 'error'); return; }
-  allowedUsers = data || [];
+  const [usersRes, deptRes] = await Promise.all([
+    sb.from('allowed_emails').select('*').order('added_at'),
+    sb.from('daily_department_access').select('*'),
+  ]);
+  if (usersRes.error) { setStatus('users-status', 'Load failed: ' + usersRes.error.message, 'error'); return; }
+  allowedUsers = usersRes.data || [];
+
+  deptAccessByEmail = {};
+  (deptRes.data || []).forEach(row => {
+    const key = row.email.toLowerCase();
+    if (!deptAccessByEmail[key]) deptAccessByEmail[key] = new Set();
+    deptAccessByEmail[key].add(row.dept);
+  });
+
   renderAllowedUsersTable();
 }
+function departmentChipsCell(u) {
+  if (u.is_admin) return `<span class="dept-admin-note">All departments (Admin)</span>`;
+  const granted = deptAccessByEmail[u.email.toLowerCase()] || new Set();
+  return `<div class="dept-chips">${DEPARTMENTS_LIST.map(d => `
+    <span class="dept-chip ${granted.has(d) ? 'on' : ''}" onclick="toggleUserDept('${u.email}','${d}',${!granted.has(d)})">${d}</span>
+  `).join('')}</div>`;
+}
 function renderAllowedUsersTable() {
-  const rows = sortRows(allowedUsers, 'users');
+  const rows = sortRows(filterRows(allowedUsers, 'users'), 'users');
   document.getElementById('users-tbody').innerHTML = rows.map(u => `
     <tr>
       <td class="mono-input">${u.email}</td>
       <td>${u.display_name || ''}</td>
       <td><span class="toggle ${u.active?'on':'off'}" onclick="toggleUserField('${u.email}','active',${!u.active})">${u.active?'Active':'Inactive'}</span></td>
       <td><span class="toggle ${u.is_admin?'on':'off'}" onclick="toggleUserField('${u.email}','is_admin',${!u.is_admin})">${u.is_admin?'Admin':'Staff'}</span></td>
+      <td>${departmentChipsCell(u)}</td>
       <td><button class="btn-remove" onclick="deleteAllowedUser('${u.email}')">×</button></td>
-    </tr>`).join('');
+    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px;">${allowedUsers.length ? 'No rows match your filters' : 'No users yet'}</td></tr>`;
+}
+async function toggleUserDept(email, dept, grant) {
+  if (grant) {
+    const { error } = await sb.from('daily_department_access').insert({ email, dept });
+    if (error) { setStatus('users-status', 'Failed: ' + error.message, 'error'); return; }
+  } else {
+    const { error } = await sb.from('daily_department_access').delete().eq('email', email).eq('dept', dept);
+    if (error) { setStatus('users-status', 'Failed: ' + error.message, 'error'); return; }
+  }
+  loadAllowedUsers();
 }
 async function addAllowedUser() {
   const email = document.getElementById('new-user-email').value.trim().toLowerCase();
