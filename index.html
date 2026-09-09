@@ -113,6 +113,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
 .field-label{font-size:11px;font-weight:600;color:var(--label);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;display:block;}
 .divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .hidden{display:none!important;}
+body.no-dept-access .dept-bar{display:none;}
+body.no-dept-access .container > *:not(#no-dept-access-notice){display:none;}
 /* ACCESS CONTROL */
 .auth-screen{position:fixed;inset:0;background:#f0f4f8;display:flex;align-items:center;justify-content:center;z-index:9999;}
 .auth-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:44px 40px;max-width:400px;width:100%;box-shadow:var(--shadow-md);text-align:center;}
@@ -162,6 +164,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
 <!-- SIGNED-IN-AS / ADMIN / SIGN OUT (shown when logged in) -->
 <div class="topright-bar hidden" id="topright-bar">
   <span class="signed-in-as" id="signed-in-as"></span>
+  <a class="btn-signout" href="../index.html" style="text-decoration:none;">🏠 Portal</a>
   <a class="btn-signout hidden" id="btn-admin" href="admin.html" style="text-decoration:none;">⚙ Configuration</a>
   <button class="btn-signout" id="btn-signout" onclick="signOut()">Sign out</button>
 </div>
@@ -178,16 +181,21 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
 <div class="dept-bar">
   <span class="dept-label">Department</span>
   <div class="dept-tabs">
-    <div class="dept-tab active" onclick="selectDept(this,'Civil')">⚒ Civil</div>
-    <div class="dept-tab" onclick="selectDept(this,'Mechanical')">⚙ Mechanical</div>
-    <div class="dept-tab" onclick="selectDept(this,'Electrical')">⚡ Electrical</div>
-    <div class="dept-tab" onclick="selectDept(this,'HSE')">🦺 HSE</div>
-    <div class="dept-tab" onclick="selectDept(this,'QAQC')">🔍 QA-QC</div>
-    <div class="dept-tab" onclick="selectDept(this,'Planning')">📋 Planning</div>
+    <div class="dept-tab active" data-dept="Civil" onclick="selectDept(this,'Civil')">⚒ Civil</div>
+    <div class="dept-tab" data-dept="Mechanical" onclick="selectDept(this,'Mechanical')">⚙ Mechanical</div>
+    <div class="dept-tab" data-dept="Electrical" onclick="selectDept(this,'Electrical')">⚡ Electrical</div>
+    <div class="dept-tab" data-dept="GRE" onclick="selectDept(this,'GRE')">🏗️ GRE</div>
+    <div class="dept-tab" data-dept="Flow Line" onclick="selectDept(this,'Flow Line')">🛢️ Flow Line</div>
+    <div class="dept-tab" data-dept="HSE" onclick="selectDept(this,'HSE')">🦺 HSE</div>
+    <div class="dept-tab" data-dept="QAQC" onclick="selectDept(this,'QAQC')">🔍 QA-QC</div>
+    <div class="dept-tab" data-dept="Planning" onclick="selectDept(this,'Planning')">📋 Planning</div>
   </div>
 </div>
 
 <div class="container">
+  <div class="section hidden" id="no-dept-access-notice" style="text-align:center;color:var(--muted);padding:32px;">
+    Your account is signed in but doesn't have access to any department yet. Contact your administrator to be added to one.
+  </div>
   <div class="success-banner" id="success-banner">
     <span style="font-size:22px;">✅</span>
     <div><div style="font-weight:600;color:var(--success);">Daily report submitted</div>
@@ -323,7 +331,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
     <button class="btn-add" onclick="addBorderRow()">+ Add subcontractor entry</button>
   </div>
 
-  <!-- ══════ CONCRETE ══════ (Civil / Mechanical / Electrical only) -->
+  <!-- ══════ CONCRETE ══════ (Civil / Mechanical / Electrical / GRE / Flow Line only) -->
   <div class="section" id="section-concrete">
     <div class="section-header">
       <div class="section-title">🧱 Concrete Tracking</div>
@@ -345,7 +353,7 @@ select.mini-ts + .ts-wrapper .ts-control{padding:4px 6px!important;font-size:12p
     <button class="btn-add" onclick="addConcRow()">+ Add concrete entry</button>
   </div>
 
-  <!-- ══════ SUB BASE ══════ (Civil / Mechanical / Electrical only) -->
+  <!-- ══════ SUB BASE ══════ (Civil / Mechanical / Electrical / GRE / Flow Line only) -->
   <div class="section" id="section-subbase">
     <div class="section-header">
       <div class="section-title">🪨 Sub Base Tracking</div>
@@ -427,6 +435,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentDept = 'Civil';
+let myDepartments = []; // departments this signed-in user is allowed to see (admins get all)
+let isAdminUser = false;
 let employees   = {};
 let equipment   = [];
 let borderRates = { pa:35000, worker:30000 };
@@ -604,8 +614,8 @@ async function loadMaster() {
 
 // ── DEPT ──────────────────────────────────────────────────────────────────────
 // Concrete Tracking and Sub Base Tracking only apply to Civil / Mechanical /
-// Electrical work — HSE, Planning, and QA-QC never need them.
-const DEPTS_WITH_MATERIALS = ['Civil', 'Mechanical', 'Electrical'];
+// Electrical / GRE / Flow Line work — HSE, Planning, and QA-QC never need them.
+const DEPTS_WITH_MATERIALS = ['Civil', 'Mechanical', 'Electrical', 'GRE', 'Flow Line'];
 
 function selectDept(el, dept) {
   currentDept = dept;
@@ -715,7 +725,7 @@ async function addEmpToList() {
 }
 
 // ── MANAGE MY EMPLOYEES (deactivate on transfer/departure, move dept, delete) ──
-const DEPT_LIST = ['Civil','Mechanical','Electrical','HSE','QAQC','Planning'];
+const DEPT_LIST = ['Civil','Mechanical','Electrical','GRE','Flow Line','HSE','QAQC','Planning'];
 let myEmployees = []; // every employee this signed-in person owns, active or not
 
 function toggleManageEmployees() {
@@ -744,7 +754,7 @@ function renderManageEmpTable() {
       <td><div class="emp-name">${e.name}</div><div class="emp-id">${e.id}</div></td>
       <td>
         <select onchange="changeEmployeeDept('${e.id}', this.value)">
-          ${DEPT_LIST.map(d => `<option value="${d}" ${d===e.dept?'selected':''}>${d}</option>`).join('')}
+          ${(isAdminUser ? DEPT_LIST : myDepartments).map(d => `<option value="${d}" ${d===e.dept?'selected':''}>${d}</option>`).join('')}
         </select>
       </td>
       <td style="font-size:12px;color:var(--muted);">${e.position||''}</td>
@@ -1298,9 +1308,39 @@ async function handleSession(session) {
   currentProfileId = user.id;
 
   const { data: isAdmin } = await sb.rpc('check_admin');
-  if (isAdmin) document.getElementById('btn-admin').classList.remove('hidden');
+  isAdminUser = !!isAdmin;
+  if (isAdminUser) document.getElementById('btn-admin').classList.remove('hidden');
+
+  // Department-scoped access: admins see every department tab; everyone else
+  // only sees the ones an admin has explicitly granted them in admin.html.
+  const { data: depts, error: deptsError } = await sb.rpc('get_my_departments');
+  myDepartments = deptsError ? [] : (depts || []);
+  applyDepartmentAccess();
 
   showApp(currentUser);
+}
+
+// Hides department tabs the signed-in user isn't granted, and makes sure a
+// visible tab ends up selected (falling back to the first one they can see).
+// If they have no departments at all, the whole form is replaced with a notice.
+function applyDepartmentAccess() {
+  const tabs = Array.from(document.querySelectorAll('.dept-tab'));
+  tabs.forEach(t => {
+    const visible = isAdminUser || myDepartments.includes(t.dataset.dept);
+    t.classList.toggle('hidden', !visible);
+  });
+
+  const visibleTabs = tabs.filter(t => !t.classList.contains('hidden'));
+  document.body.classList.toggle('no-dept-access', !visibleTabs.length);
+  document.getElementById('no-dept-access-notice').classList.toggle('hidden', !!visibleTabs.length);
+  if (!visibleTabs.length) return;
+
+  const activeTab = tabs.find(t => t.classList.contains('active'));
+  if (!activeTab || activeTab.classList.contains('hidden')) {
+    tabs.forEach(t => t.classList.remove('active'));
+    visibleTabs[0].classList.add('active');
+    selectDept(visibleTabs[0], visibleTabs[0].dataset.dept);
+  }
 }
 
 function showApp(user) {
