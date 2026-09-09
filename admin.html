@@ -112,6 +112,7 @@ th.sortable:hover{color:var(--blue);}
   <div style="display:flex;align-items:center;gap:10px;">
     <span style="font-size:11px;color:rgba(255,255,255,.7);font-family:var(--mono);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:6px;" id="signed-in-as"></span>
     <a class="back" href="../index.html">🏠 Portal</a>
+    <a class="back" href="dashboard.html">📊 Dashboard</a>
     <a class="back" href="index.html">← Back to Daily Report</a>
     <button class="back" style="cursor:pointer;" onclick="signOutAdmin()">Sign out</button>
   </div>
@@ -277,6 +278,19 @@ th.sortable:hover{color:var(--blue);}
       <div><label class="field-label">Worker Rate / Day (IQD)</label><input type="number" id="cfg-worker-rate"></div>
       <div><label class="field-label">Default USD Rate</label><input type="number" id="cfg-usd-rate"></div>
     </div>
+    <div style="margin-top:16px;">
+      <label class="field-label">Weekly Rest Day(s)</label>
+      <div class="section-sub" style="margin-bottom:8px;">Used by the Dashboard to know which days shouldn't be flagged as "missing" a daily report.</div>
+      <div id="cfg-rest-days" style="display:flex;gap:14px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="0" class="rest-day-cb"> Sunday</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="1" class="rest-day-cb"> Monday</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="2" class="rest-day-cb"> Tuesday</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="3" class="rest-day-cb"> Wednesday</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="4" class="rest-day-cb"> Thursday</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="5" class="rest-day-cb"> Friday</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;"><input type="checkbox" value="6" class="rest-day-cb"> Saturday</label>
+      </div>
+    </div>
     <button class="btn primary" style="margin-top:14px;" onclick="saveConfig()">Save</button>
     <div class="status" id="config-status"></div>
   </div>
@@ -293,6 +307,7 @@ th.sortable:hover{color:var(--blue);}
         <th class="sortable" onclick="sortCol('users','name')">Name<span class="sort-arrow" id="arrow-users-name"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('users','active')">Active<span class="sort-arrow" id="arrow-users-active"></span></th>
         <th class="sortable" style="width:90px;" onclick="sortCol('users','admin')">Admin<span class="sort-arrow" id="arrow-users-admin"></span></th>
+        <th class="sortable" style="width:90px;" onclick="sortCol('users','auditor')">Auditor<span class="sort-arrow" id="arrow-users-auditor"></span></th>
         <th style="min-width:300px;">Departments (Daily Report)</th>
         <th style="width:32px;"></th>
       </tr>
@@ -307,6 +322,11 @@ th.sortable:hover{color:var(--blue);}
         <th>
           <select id="filter-users-admin" onchange="setFilter('users','admin',this.value)">
             <option value="">All</option><option value="admin">Admin</option><option value="staff">Staff</option>
+          </select>
+        </th>
+        <th>
+          <select id="filter-users-auditor" onchange="setFilter('users','auditor',this.value)">
+            <option value="">All</option><option value="auditor">Auditor</option><option value="not">Not</option>
           </select>
         </th>
         <th></th>
@@ -401,7 +421,7 @@ const COLUMN_GETTERS = {
   cat:   { cc: r=>r.cost_center_id, id: r=>r.id, name: r=>r.name||'', active: r=>r.active?1:0 },
   proj:  { cc: r=>r.cost_center_id, cat: r=>r.category_id, id: r=>r.id, desc: r=>r.description||'', active: r=>r.active?1:0 },
   eq:    { type: r=>r.type, rate: r=>Number(r.unit_rate)||0, unit: r=>r.unit||'', active: r=>r.active?1:0 },
-  users: { email: r=>r.email, name: r=>r.display_name||'', active: r=>r.active?1:0, admin: r=>r.is_admin?1:0 },
+  users: { email: r=>r.email, name: r=>r.display_name||'', active: r=>r.active?1:0, admin: r=>r.is_admin?1:0, auditor: r=>r.is_auditor?1:0 },
 };
 
 function sortRows(rows, tableKey) {
@@ -468,6 +488,7 @@ function filterRows(rows, tableKey) {
     const val = getter ? getter(r) : '';
     if (col === 'active') return (fv === 'active' && val === 1) || (fv === 'inactive' && val === 0);
     if (col === 'admin') return (fv === 'admin' && val === 1) || (fv === 'staff' && val === 0);
+    if (col === 'auditor') return (fv === 'auditor' && val === 1) || (fv === 'not' && val === 0);
     return String(val).toLowerCase().includes(fv.toLowerCase());
   }));
 }
@@ -678,15 +699,22 @@ async function loadConfig() {
   document.getElementById('cfg-pa-rate').value = border.pa || 0;
   document.getElementById('cfg-worker-rate').value = border.worker || 0;
   document.getElementById('cfg-usd-rate').value = cfg.default_usd_rate || 0;
+
+  const restDays = cfg.rest_days || [5]; // default: Friday
+  document.querySelectorAll('.rest-day-cb').forEach(cb => {
+    cb.checked = restDays.includes(Number(cb.value));
+  });
 }
 async function saveConfig() {
   const pa = parseFloat(document.getElementById('cfg-pa-rate').value) || 0;
   const worker = parseFloat(document.getElementById('cfg-worker-rate').value) || 0;
   const usdRate = parseFloat(document.getElementById('cfg-usd-rate').value) || 0;
+  const restDays = Array.from(document.querySelectorAll('.rest-day-cb:checked')).map(cb => Number(cb.value));
   setStatus('config-status', 'Saving...', 'saving');
   const results = await Promise.all([
     sb.from('app_config').upsert({ key: 'border_rates', value: { pa, worker } }),
     sb.from('app_config').upsert({ key: 'default_usd_rate', value: usdRate }),
+    sb.from('app_config').upsert({ key: 'rest_days', value: restDays }),
   ]);
   const failed = results.find(r => r.error);
   if (failed) { setStatus('config-status', 'Failed: ' + failed.error.message, 'error'); return; }
@@ -734,9 +762,10 @@ function renderAllowedUsersTable() {
       <td>${u.display_name || ''}</td>
       <td><span class="toggle ${u.active?'on':'off'}" onclick="toggleUserField('${u.email}','active',${!u.active})">${u.active?'Active':'Inactive'}</span></td>
       <td><span class="toggle ${u.is_admin?'on':'off'}" onclick="toggleUserField('${u.email}','is_admin',${!u.is_admin})">${u.is_admin?'Admin':'Staff'}</span></td>
+      <td><span class="toggle ${u.is_auditor?'on':'off'}" onclick="toggleUserField('${u.email}','is_auditor',${!u.is_auditor})">${u.is_auditor?'Auditor':'—'}</span></td>
       <td>${departmentChipsCell(u)}</td>
       <td><button class="btn-remove" onclick="deleteAllowedUser('${u.email}')">×</button></td>
-    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px;">${allowedUsers.length ? 'No rows match your filters' : 'No users yet'}</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:14px;">${allowedUsers.length ? 'No rows match your filters' : 'No users yet'}</td></tr>`;
 }
 async function toggleUserDept(email, dept, grant) {
   if (grant) {
